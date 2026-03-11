@@ -1,0 +1,16 @@
+{
+  "name": "simple-project-app",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "client"
+  ],
+  "scripts": {
+    "build": "npm run build -w client",
+    "dev": "npm run dev -w client",
+    "preview": "npm run preview -w client"
+  },
+  "devDependencies": {
+    "vite-plugin-singlefile": "^2.3.0"
+  }
+}

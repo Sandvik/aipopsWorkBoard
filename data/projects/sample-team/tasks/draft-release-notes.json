@@ -1,0 +1,14 @@
+{
+  "id": "task_1002",
+  "title": "Draft release notes",
+  "slug": "draft-release-notes",
+  "description": "Collect product and support highlights for the March release.",
+  "assignee": "Thomas",
+  "deadline": "2026-03-14",
+  "priority": "Medium",
+  "status": "doing",
+  "projectSlug": "sample-team",
+  "order": 1000,
+  "comments": [],
+  "attachments": []
+}

@@ -1,0 +1,34 @@
+{
+  "id": "task_1001",
+  "title": "Fix login flow",
+  "slug": "fix-login-flow",
+  "description": "Copied from support mail. Error only shows after a second retry.",
+  "assignee": "dsdsaThomas",
+  "deadline": "2026-03-18",
+  "priority": "Medium",
+  "status": "todo",
+  "projectSlug": "sample-team",
+  "order": 1000,
+  "comments": [
+    {
+      "id": "comment_1001",
+      "text": "Repro in Safari and Edge.",
+      "createdAt": "2026-03-11T08:15:00.000Z"
+    },
+    {
+      "id": "comment_5a454d11",
+      "text": "test",
+      "createdAt": "2026-03-11T08:45:08.716Z"
+    }
+  ],
+  "attachments": [
+    {
+      "id": "file_1c16e053",
+      "fileName": "WBS.txt",
+      "storedName": "1773218699150-wbs-txt",
+      "relativePath": "data/projects/sample-team/attachments/task_1001/1773218699150-wbs-txt",
+      "size": 292,
+      "uploadedAt": "2026-03-11T08:44:59.151Z"
+    }
+  ]
+}
