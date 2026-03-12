@@ -27,6 +27,7 @@ type TaskToolbarProps = {
   overdueVisibleTasks: number;
   dueTodayVisibleTasks: number;
   doingVisibleTasks: number;
+  doneVisibleTasks: number;
   highPriorityVisibleTasks: number;
   newTaskTitle: string;
   newTaskAssignee: string;
@@ -60,6 +61,7 @@ export function TaskToolbar({
   overdueVisibleTasks,
   dueTodayVisibleTasks,
   doingVisibleTasks,
+  doneVisibleTasks,
   highPriorityVisibleTasks,
   newTaskTitle,
   newTaskAssignee,
@@ -112,6 +114,12 @@ export function TaskToolbar({
           {doingVisibleTasks > 0 ? (
             <span className="toolbar-stat-chip toolbar-stat-chip-doing">
               {doingVisibleTasks} i gang
+            </span>
+          ) : null}
+          {doneVisibleTasks > 0 ? (
+            <span className="toolbar-stat-chip toolbar-stat-chip-today">
+              {doneVisibleTasks} færdig
+              {doneVisibleTasks === 1 ? "" : "e"}
             </span>
           ) : null}
           {highPriorityVisibleTasks > 0 ? (
@@ -181,43 +189,45 @@ export function TaskToolbar({
 
       {isCreatingTask ? (
         <form className="new-task-panel" onSubmit={onSubmitNewTask}>
-          <label>
-            <span className="field-label">
-              Titel <span className="required-mark">*</span>
-            </span>
-            <input
-              value={newTaskTitle}
-              onChange={(event) => onNewTaskTitleChange(event.target.value)}
-              className={!newTaskTitle.trim() ? "input-invalid" : ""}
-              placeholder="Hvad skal gøres?"
-            />
-          </label>
-          <label>
-            <span className="field-label">
-              Projekt <span className="required-mark">*</span>
-            </span>
-            <select
-              value={newTaskProjectSlug}
-              onChange={(event) => onNewTaskProjectSlugChange(event.target.value)}
-            >
-              <option value="">
-                {hasWorkspace ? "Vælg projekt" : "Vælg arbejdsmappe først"}
-              </option>
-              {projects.map((project) => (
-                <option key={project.id} value={project.slug}>
-                  {project.name}
+          <div className="new-task-grid">
+            <label>
+              <span className="field-label">
+                Titel <span className="required-mark">*</span>
+              </span>
+              <input
+                value={newTaskTitle}
+                onChange={(event) => onNewTaskTitleChange(event.target.value)}
+                className={!newTaskTitle.trim() ? "input-invalid" : ""}
+                placeholder="Hvad skal gøres?"
+              />
+            </label>
+            <label>
+              <span className="field-label">
+                Projekt <span className="required-mark">*</span>
+              </span>
+              <select
+                value={newTaskProjectSlug}
+                onChange={(event) => onNewTaskProjectSlugChange(event.target.value)}
+              >
+                <option value="">
+                  {hasWorkspace ? "Vælg projekt" : "Vælg arbejdsmappe først"}
                 </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Ansvarlig
-            <input
-              value={newTaskAssignee}
-              onChange={(event) => onNewTaskAssigneeChange(event.target.value)}
-              placeholder="Navn (valgfrit)"
-            />
-          </label>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.slug}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Ansvarlig
+              <input
+                value={newTaskAssignee}
+                onChange={(event) => onNewTaskAssigneeChange(event.target.value)}
+                placeholder="Navn (valgfrit)"
+              />
+            </label>
+          </div>
           <div className="new-task-actions">
             <button
               type="button"

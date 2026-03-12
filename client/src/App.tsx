@@ -124,6 +124,7 @@ export default function App() {
     (task) => task.deadline && new Date(task.deadline).toDateString() === todayLabel,
   ).length;
   const doingVisibleTasks = visibleTasks.filter((task) => task.status === "doing").length;
+   const doneVisibleTasks = visibleTasks.filter((task) => task.status === "done").length;
   const highPriorityVisibleTasks = visibleTasks.filter(
     (task) => task.priority === "High" || task.priority === "Critical",
   ).length;
@@ -295,6 +296,7 @@ export default function App() {
                 overdueVisibleTasks={overdueVisibleTasks}
                 dueTodayVisibleTasks={dueTodayVisibleTasks}
                 doingVisibleTasks={doingVisibleTasks}
+                doneVisibleTasks={doneVisibleTasks}
                 highPriorityVisibleTasks={highPriorityVisibleTasks}
                 newTaskTitle={newTaskTitle}
                 newTaskAssignee={newTaskAssignee}
