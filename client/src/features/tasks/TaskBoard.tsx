@@ -33,6 +33,13 @@ export function TaskBoard({
   onTaskDragStart,
   onTaskDragEnd,
 }: TaskBoardProps) {
+  const statusSubtitles: Record<TaskStatus, string> = {
+    backlog: "Idéer / senere",
+    todo: "Klar til at starte",
+    doing: "Arbejdet er i gang",
+    done: "Færdigt arbejde",
+  };
+
   return (
     <>
       {(["backlog", "todo", "doing", "done"] as TaskStatus[]).map((status) => {
@@ -56,8 +63,11 @@ export function TaskBoard({
             }}
           >
             <div className="column-header">
-              <h2>{STATUS_LABELS[status]}</h2>
-              <span className="muted">{columnTasks.length}</span>
+              <div>
+                <h2>{STATUS_LABELS[status]}</h2>
+                <p className="column-subtitle muted small">{statusSubtitles[status]}</p>
+              </div>
+              <span className="muted column-count">{columnTasks.length}</span>
             </div>
             <div className="column-body">
               {columnTasks.map((task) => {

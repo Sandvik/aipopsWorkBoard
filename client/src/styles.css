@@ -181,6 +181,11 @@ body.theme-dark .secondary-button {
   border-color: rgba(148, 163, 184, 0.8);
 }
 
+body.theme-dark .secondary-button:hover:not(:disabled) {
+  background: rgba(30, 64, 175, 0.4);
+  border-color: rgba(129, 140, 248, 0.9);
+}
+
 body.theme-dark .task-card {
   background: rgba(15, 23, 42, 0.98);
   border-color: rgba(55, 65, 81, 0.8);
@@ -1067,9 +1072,21 @@ body.theme-dark .toolbar-stat-chip-danger {
 .column-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1rem 0.7rem;
+  align-items: flex-start;
+  padding: 0.1rem 1rem 0.4rem;
   border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.column-header h2 {
+  margin: 0;
+}
+
+.column-subtitle {
+  margin: 0.01rem 0 0.02rem;
+}
+
+.column-count {
+  margin-top: 0.25rem;
 }
 
 .column-body {
