@@ -31,13 +31,18 @@ export function WorkspaceSidebar({
   onSelectProject,
   onDeleteProject,
 }: WorkspaceSidebarProps) {
+  const baseUrl =
+    (import.meta as any).env?.BASE_URL && typeof (import.meta as any).env.BASE_URL === "string"
+      ? (import.meta as any).env.BASE_URL
+      : "/";
+  const sidebarImageUrl = baseUrl + "aipops-workboard-sidebar.png";
+
   return (
     <aside className="left-rail">
       <div className="app-brand">
-       
         <img
           className="app-brand-image"
-          src="/aipops-workboard-sidebar.png"
+          src={sidebarImageUrl}
           alt="AIPOPS Workboard – ét roligt board til opgaver og projekter"
         />
       </div>
