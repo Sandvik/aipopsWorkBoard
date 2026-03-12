@@ -1445,6 +1445,12 @@ body.theme-dark .confirm-modal p {
   background: rgba(255, 255, 255, 0.7);
 }
 
+body.theme-dark .dropzone {
+  border-color: rgba(148, 163, 184, 0.8);
+  background: rgba(15, 23, 42, 0.96);
+  color: #e5e7eb;
+}
+
 .attachment-row,
 .comment-card {
   display: flex;
@@ -1544,6 +1550,10 @@ label {
   margin: 0;
   font-size: 0.86rem;
   color: #6b7280;
+}
+
+.attachment-note {
+  font-size: 0.8rem;
 }
 
 .primary-button {

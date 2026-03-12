@@ -189,6 +189,9 @@ export function TaskDetailsPanel({
         <p className="eyebrow">Vedhæftninger</p>
         <label className="dropzone upload-button">
           Tilføj fil
+          <span className="form-note attachment-note">
+            (Evt. træk vedhæftninger hertil direkte fra din mail.)
+          </span>
           <input type="file" onChange={onAttachmentChange} hidden />
         </label>
         <div className="stack">

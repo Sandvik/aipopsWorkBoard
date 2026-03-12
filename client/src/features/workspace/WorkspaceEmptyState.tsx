@@ -26,6 +26,7 @@ export function WorkspaceEmptyState({
           <li>Vælg en arbejdsmappe til dine data</li>
           <li>Opret et projekt i sidebaren</li>
           <li>Tilføj opgaver og træk dem mellem kolonnerne</li>
+          <li>Får du opgaver via mail? Kopiér emne og tekst ind i en ny opgave, og træk vedhæftninger hertil.</li>
         </ul>
         <label className="toggle tour-toggle">
           <input

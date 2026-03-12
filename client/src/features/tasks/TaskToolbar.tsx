@@ -213,7 +213,7 @@ export function TaskToolbar({
                 value={newTaskTitle}
                 onChange={(event) => onNewTaskTitleChange(event.target.value)}
                 className={!newTaskTitle.trim() ? "input-invalid" : ""}
-                placeholder="Hvad skal gøres?"
+                placeholder="Hvad skal gøres? (indsæt evt. mailens emne)"
               />
             </label>
             <label>
@@ -243,6 +243,10 @@ export function TaskToolbar({
               />
             </label>
           </div>
+          <p className="form-note new-task-mail-hint">
+            Tip: Får du opgaven pr. mail, kan du indsætte emnelinjen i titel og teksten fra mailen i
+            beskrivelsen.
+          </p>
           <div className="new-task-actions">
             <button
               type="button"
