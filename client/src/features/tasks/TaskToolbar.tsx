@@ -23,6 +23,8 @@ type TaskToolbarProps = {
   onResetFilters: () => void;
   isCreatingTask: boolean;
   busy: boolean;
+  theme: "light" | "dark";
+  onToggleTheme: () => void;
   totalVisibleTasks: number;
   overdueVisibleTasks: number;
   dueTodayVisibleTasks: number;
@@ -57,6 +59,8 @@ export function TaskToolbar({
   onResetFilters,
   isCreatingTask,
   busy,
+  theme,
+  onToggleTheme,
   totalVisibleTasks,
   overdueVisibleTasks,
   dueTodayVisibleTasks,
@@ -129,6 +133,17 @@ export function TaskToolbar({
           ) : null}
         </div>
         <div className="toolbar-actions">
+          <button
+            type="button"
+            className="ghost-button theme-toggle-button"
+            onClick={onToggleTheme}
+            title={theme === "light" ? "Skift til mørk tilstand" : "Skift til lys tilstand"}
+          >
+            <span aria-hidden="true">{theme === "light" ? "🌙" : "☀️"}</span>
+            <span className="visually-hidden">
+              {theme === "light" ? "Skift til mørk tilstand" : "Skift til lys tilstand"}
+            </span>
+          </button>
           <button
             type="button"
             className={`ghost-button filter-chip ${filtersActive ? "filter-chip-active" : ""}`}

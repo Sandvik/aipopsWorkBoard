@@ -5,7 +5,7 @@ import type { ProjectRecord } from "../../types";
 // TypeScript kender ikke billed-typerne her som modul, så vi ignorerer typen lokalt.
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import sidebarImage from "../../assets/aipops-workboard-sidebar.png";
+import sidebarImage from "../../assets/aipops-workboard-sidebar-transparent.png";
 
 type WorkspaceSidebarProps = {
   hasWorkspace: boolean;

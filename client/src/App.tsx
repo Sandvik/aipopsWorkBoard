@@ -60,9 +60,25 @@ export default function App() {
   const [showAbout, setShowAbout] = useState(false);
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const [isMobileLike, setIsMobileLike] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    if (typeof window === "undefined") return "light";
+    try {
+      const prefersDark =
+        typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
+      return prefersDark ? "dark" : "light";
+    } catch {
+      return "light";
+    }
+  });
 
   // Async-feedback (busy/error/message) deles af alle domæne-handlers via runAction.
   const { busy, error, message, setError, setMessage, runAction } = useAsyncFeedback();
+
+  // Synkroniser valgt tema til body-klasse så CSS kan lave overrides.
+  useEffect(() => {
+    document.body.classList.toggle("theme-dark", theme === "dark");
+  }, [theme]);
 
   // Enkel detektion af "mobil-lignende" view (lille viewport og typisk touch).
   useEffect(() => {
@@ -322,6 +338,8 @@ export default function App() {
                 onResetFilters={resetFilters}
                 isCreatingTask={isCreatingTask}
                 busy={busy}
+                theme={theme}
+                onToggleTheme={() => setTheme((current) => (current === "light" ? "dark" : "light"))}
                 totalVisibleTasks={totalVisibleTasks}
                 overdueVisibleTasks={overdueVisibleTasks}
                 dueTodayVisibleTasks={dueTodayVisibleTasks}

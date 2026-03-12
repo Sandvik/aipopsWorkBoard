@@ -56,6 +56,165 @@ a {
 #root {
   min-height: 100vh;
 }
+
+body.theme-dark {
+  color-scheme: dark;
+  background: #020617;
+  color: #e5e7eb;
+}
+
+body.theme-dark .app-root {
+  background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.85), #020617);
+}
+
+body.theme-dark input,
+body.theme-dark select,
+body.theme-dark textarea {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: rgba(55, 65, 81, 0.9);
+  color: #e5e7eb;
+}
+
+body.theme-dark .app-header {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.96));
+  border-bottom-color: rgba(148, 163, 184, 0.3);
+}
+
+body.theme-dark .left-rail,
+body.theme-dark .task-panel {
+  background: rgba(15, 23, 42, 0.98);
+  border-color: rgba(30, 64, 175, 0.4);
+}
+
+body.theme-dark .main-area {
+  background: transparent;
+}
+
+body.theme-dark .workspace-card,
+body.theme-dark .project-section-head,
+body.theme-dark .task-card,
+body.theme-dark .new-task-panel {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: rgba(55, 65, 81, 0.8);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
+}
+
+body.theme-dark .board-column {
+  background: rgba(15, 23, 42, 0.98);
+  border-color: rgba(55, 65, 81, 0.8);
+}
+
+body.theme-dark .app-footer {
+  background: rgba(15, 23, 42, 0.98);
+  border-top-color: rgba(55, 65, 81, 0.7);
+}
+
+body.theme-dark .project-list-item-active {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.7);
+}
+
+body.theme-dark .primary-button {
+  background: #3b82f6;
+  color: #e5e7eb;
+}
+
+body.theme-dark .ghost-button {
+  background: rgba(15, 23, 42, 0.8);
+  color: #e5e7eb;
+  border-color: rgba(75, 85, 99, 0.9);
+}
+
+body.theme-dark .left-rail {
+  border-right-color: rgba(55, 65, 81, 0.8);
+}
+
+body.theme-dark .app-brand-badge {
+  border-color: rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.98);
+  color: #e5e7eb;
+}
+
+body.theme-dark .app-brand-title {
+  color: #e5e7eb;
+}
+
+body.theme-dark .app-brand-tagline,
+body.theme-dark .muted,
+body.theme-dark .muted.small {
+  color: #9ca3af;
+}
+
+body.theme-dark .workspace-name {
+  color: #e5e7eb;
+}
+
+body.theme-dark .eyebrow {
+  color: #9ca3af;
+}
+
+body.theme-dark .workspace-folder-chip {
+  background: rgba(15, 23, 42, 0.98);
+  border-color: rgba(55, 65, 81, 0.8);
+}
+
+body.theme-dark .project-list-name {
+  color: #e5e7eb;
+}
+
+body.theme-dark .project-list-item-active .project-list-name {
+  color: #f9fafb;
+}
+
+body.theme-dark .project-list-meta {
+  color: #cbd5f5;
+}
+
+body.theme-dark .danger-button {
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.6);
+}
+
+body.theme-dark .secondary-button {
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  border-color: rgba(148, 163, 184, 0.8);
+}
+
+body.theme-dark .task-card {
+  background: rgba(15, 23, 42, 0.98);
+  border-color: rgba(55, 65, 81, 0.8);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
+}
+
+body.theme-dark .task-title {
+  color: #e5e7eb;
+}
+
+body.theme-dark .task-card-meta,
+body.theme-dark .project-mark,
+body.theme-dark .task-id {
+  color: #cbd5f5;
+}
+
+body.theme-dark .task-chip {
+  background: rgba(30, 64, 175, 0.4);
+  color: #e5e7eb;
+}
+
+body.theme-dark .task-panel-actions {
+  border-top-color: rgba(55, 65, 81, 0.9);
+  background: linear-gradient(
+    to top,
+    rgba(15, 23, 42, 0.98),
+    rgba(15, 23, 42, 0.94),
+    transparent
+  );
+}
+
+body.theme-dark .task-panel-actions .muted.small {
+  color: #9ca3af;
+}
 .app-root {
   min-height: 100vh;
   display: flex;
@@ -725,6 +884,11 @@ p {
   color: #9ca3af;
 }
 
+body.theme-dark .toolbar-search input::placeholder {
+  color: #9ca3af;
+  opacity: 0.9;
+}
+
 .toolbar-actions {
   display: flex;
   gap: 0.5rem;
@@ -812,6 +976,25 @@ p {
   background: linear-gradient(135deg, #9c36b5, #f06595);
 }
 
+body.theme-dark .toolbar-stats-summary {
+  color: #e5e7eb;
+}
+
+body.theme-dark .toolbar-stat-chip {
+  background: rgba(15, 23, 42, 0.7);
+  color: #e5e7eb;
+}
+
+body.theme-dark .toolbar-stat-chip-primary {
+  background: rgba(59, 130, 246, 0.25);
+  color: #f9fafb;
+}
+
+body.theme-dark .toolbar-stat-chip-danger {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fecaca;
+}
+
 .filter-chip {
   border-radius: 999px;
   padding: 0.3rem 0.9rem;
@@ -822,6 +1005,24 @@ p {
   background: rgba(37, 99, 235, 0.08);
   border-color: rgba(37, 99, 235, 0.45);
   color: #1d4ed8;
+}
+
+.theme-toggle-button {
+  border-radius: 999px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.82rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .quick-create,
@@ -1028,7 +1229,7 @@ p {
 }
 
 .task-save-button {
-  margin-top: 0.7rem;
+  margin-top: 0;
 }
 
 .task-panel-actions {
@@ -1036,7 +1237,7 @@ p {
   padding-top: 0.6rem;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.5rem;
   border-top: 1px solid rgba(148, 163, 184, 0.6);
   background: linear-gradient(
