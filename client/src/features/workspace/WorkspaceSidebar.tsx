@@ -1,6 +1,11 @@
 // Venstre sidebar med brand, arbejdsmappe-info og projektliste.
 // Alle side-effekter (valg af mappe, reload, slet projekt) håndteres via callbacks.
 import type { ProjectRecord } from "../../types";
+// Billedet ligger i src/assets, så Vite kan fingerprint'e det korrekt.
+// TypeScript kender ikke billed-typerne her som modul, så vi ignorerer typen lokalt.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import sidebarImage from "../../assets/aipops-workboard-sidebar.png";
 
 type WorkspaceSidebarProps = {
   hasWorkspace: boolean;
@@ -31,18 +36,12 @@ export function WorkspaceSidebar({
   onSelectProject,
   onDeleteProject,
 }: WorkspaceSidebarProps) {
-  const baseUrl =
-    (import.meta as any).env?.BASE_URL && typeof (import.meta as any).env.BASE_URL === "string"
-      ? (import.meta as any).env.BASE_URL
-      : "/";
-  const sidebarImageUrl = baseUrl + "aipops-workboard-sidebar.png";
-
   return (
     <aside className="left-rail">
       <div className="app-brand">
         <img
           className="app-brand-image"
-          src={sidebarImageUrl}
+          src={sidebarImage}
           alt="AIPOPS Workboard – ét roligt board til opgaver og projekter"
         />
       </div>
