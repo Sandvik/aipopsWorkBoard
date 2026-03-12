@@ -1298,6 +1298,42 @@ body.theme-dark .toolbar-stat-chip-danger {
   text-align: left;
 }
 
+.empty-main-steps {
+  margin: 0;
+  padding-left: 1.3rem;
+  display: grid;
+  gap: 0.15rem;
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.empty-main-steps li::marker {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+body.theme-dark .empty-main-card {
+  background: rgba(15, 23, 42, 0.98);
+  border-color: rgba(55, 65, 81, 0.9);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.95);
+}
+
+body.theme-dark .empty-main-card h2 {
+  color: #e5e7eb;
+}
+
+body.theme-dark .empty-main-card .muted {
+  color: #cbd5f5;
+}
+
+body.theme-dark .empty-main-steps {
+  color: #e5e7eb;
+}
+
+body.theme-dark .empty-main-steps li::marker {
+  color: #60a5fa;
+}
+
 .tour-toggle {
   margin-top: 0.4rem;
 }
@@ -1378,6 +1414,20 @@ body.theme-dark .toolbar-stat-chip-danger {
   justify-content: flex-end;
   gap: 0.5rem;
   margin-top: 0.4rem;
+}
+
+body.theme-dark .confirm-modal {
+  background: rgba(15, 23, 42, 0.98);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.95);
+  color: #e5e7eb;
+}
+
+body.theme-dark .confirm-modal h2 {
+  color: #f9fafb;
+}
+
+body.theme-dark .confirm-modal p {
+  color: #e5e7eb;
 }
 
 .panel-grid {

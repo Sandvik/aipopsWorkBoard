@@ -18,15 +18,22 @@ export function WorkspaceEmptyState({
       <div className="empty-main-card">
         <h2>Vælg en arbejdsmappe for at komme i gang</h2>
         <p className="muted">
-          AIPOPS Workboard gemmer alle projekter og opgaver lokalt i den mappe du vælger.
+          AIPOPS Workboard er et board til dine projekter og opgaver.
+          <br />
+          Det gemmer alt som filer i en mappe på din egen computer – ingen servere, ingen login.
         </p>
+        <ul className="empty-main-steps">
+          <li>Vælg en arbejdsmappe til dine data</li>
+          <li>Opret et projekt i sidebaren</li>
+          <li>Tilføj opgaver og træk dem mellem kolonnerne</li>
+        </ul>
         <label className="toggle tour-toggle">
           <input
             type="checkbox"
             checked={startTourAfterWorkspace}
             onChange={(event) => onStartTourToggle(event.target.checked)}
           />
-          Vis en kort rundtur efter valg
+          Vis en kort rundtur efter valg af mappe
         </label>
         <button
           type="button"
@@ -34,7 +41,7 @@ export function WorkspaceEmptyState({
           onClick={onPickWorkspace}
           disabled={busy}
         >
-          Vælg arbejdsmappe
+          Vælg mappe
         </button>
       </div>
     </div>

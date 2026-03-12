@@ -269,7 +269,9 @@ async function ensureUniqueTaskSlug(
 
 export async function pickWorkspaceDirectory() {
   if (!window.showDirectoryPicker) {
-    throw new Error("Denne browser understøtter ikke mappeadgang. Brug en Chromium-baseret browser.");
+    throw new Error(
+      "Din nuværende browser understøtter ikke mappeadgang. Prøv i stedet i Chrome, Edge, Brave eller en anden moderne browser baseret på Chromium."
+    );
   }
   return window.showDirectoryPicker({ mode: "readwrite" });
 }

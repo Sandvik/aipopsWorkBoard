@@ -63,6 +63,17 @@ export function useWorkspace({
         if (caught instanceof DOMException && caught.name === "AbortError") {
           return;
         }
+        if (caught instanceof Error && caught.message.includes("understøtter ikke mappeadgang")) {
+          setConfirmState({
+            title: "Din browser mangler mappeadgang",
+            message: caught.message,
+            confirmLabel: "OK",
+            onConfirm: () => {
+              setConfirmState(null);
+            },
+          });
+          return;
+        }
         throw caught;
       }
       setWorkspace(handle);

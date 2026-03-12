@@ -91,19 +91,18 @@ export function WorkspaceSidebar({
 
           <div className="workspace-card projects-card">
             <div className="projects-head-main">
-                <p className="eyebrow">Dine projekter</p>
-                <button
-                type="button"
-                className="primary-button"
-                disabled={busy || !hasWorkspace}
-                onClick={onCreateProject}
-                title="Opret et nyt projekt i den valgte arbejdsmappe"
-              >
-                + Nyt projekt
-              </button>
-              </div>
-             
-           
+              <p className="eyebrow">Dine projekter</p>
+          
+            </div>
+            <button
+              type="button"
+              className="primary-button new-project-button"
+              disabled={busy || !hasWorkspace}
+              onClick={onCreateProject}
+              title="Opret et nyt projekt i den valgte arbejdsmappe"
+            >
+              + Nyt projekt
+            </button>
 
             <div className="project-list">
               <p className="project-section-label">Aktive projekter</p>
