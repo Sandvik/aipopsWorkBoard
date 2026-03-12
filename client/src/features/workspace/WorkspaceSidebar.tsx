@@ -44,53 +44,62 @@ export function WorkspaceSidebar({
       {hasWorkspace ? (
         <>
           <div className="workspace-card">
-            <p className="eyebrow">Arbejdsmappe</p>
-            <p className="workspace-name" title={workspaceName || undefined}>
-              {workspaceName || "Ingen mappe valgt"}
-            </p>
-            <div className="workspace-actions">
-              <button
-                type="button"
-                className="primary-button"
-                onClick={onPickWorkspace}
-                disabled={busy}
-                title={workspaceName ? "Skift til en anden arbejdsmappe" : "Vælg en arbejdsmappe for at komme i gang"}
-              >
-                {workspaceName ? "Skift mappe" : "Vælg mappe"}
-              </button>
+            <div className="workspace-card-header">
+              <p className="eyebrow">Din arbejdsmappe</p>
+              <div className="workspace-folder-chip" title={workspaceName || undefined}>
+                <span className="workspace-folder-strip" aria-hidden="true" />
+                <p className="workspace-name">
+                  {workspaceName || "Ingen mappe valgt"}
+                </p>
+              </div>
+              <p className="workspace-card-copy muted small">
+                Alt på boardet ligger i denne mappe.
+              </p>
             </div>
-            <div>
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={onRefreshData}
-                disabled={busy}
-                title="Ved delt mappe: klik for at hente andre brugeres ændringer"
-              >
-                Opdater
-              </button>
-            </div>
-            <p className="workspace-shared-hint muted small">
-            
-            </p>
-          </div>
-
-          <div className="workspace-card projects-card">
-            <div className="projects-head-row">
-              <div>
-                <p className="eyebrow">Projekter</p>
-               
+            <div className="workspace-card-actions">
+              <div className="workspace-actions">
                 <button
                   type="button"
                   className="primary-button"
-                  disabled={busy || !hasWorkspace}
-                  onClick={onCreateProject}
-                title="Opret et nyt projekt i den valgte arbejdsmappe"
+                  onClick={onPickWorkspace}
+                  disabled={busy}
+                  title={
+                    workspaceName
+                      ? "Skift til en anden arbejdsmappe"
+                      : "Vælg en arbejdsmappe for at komme i gang"
+                  }
                 >
-                  + Nyt projekt
+                  {workspaceName ? "Skift mappe" : "Vælg mappe"}
+                </button>
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={onRefreshData}
+                  disabled={busy}
+                  title="Ved delt mappe: klik for at hente andre brugeres ændringer"
+                >
+                  Opdater
                 </button>
               </div>
+           
             </div>
+          </div>
+
+          <div className="workspace-card projects-card">
+            <div className="projects-head-main">
+                <p className="eyebrow">Dine projekter</p>
+                <button
+                type="button"
+                className="primary-button"
+                disabled={busy || !hasWorkspace}
+                onClick={onCreateProject}
+                title="Opret et nyt projekt i den valgte arbejdsmappe"
+              >
+                + Nyt projekt
+              </button>
+              </div>
+             
+           
 
             <div className="project-list">
               <p className="project-section-label">Aktive projekter</p>
@@ -98,11 +107,12 @@ export function WorkspaceSidebar({
                 <button
                   key={project.id}
                   type="button"
-                  className={`project-list-item ${
+                  className={`project-list-item project-list-item-active-section ${
                     selectedProjectSlug === project.slug ? "project-list-item-active" : ""
                   }`}
                   onClick={() => onSelectProject(project.slug)}
                 >
+                  <span className="project-list-strip project-list-strip-active" aria-hidden="true" />
                   <span className="project-list-text">
                     <span className="project-list-name">{project.name}</span>
                     {selectedProjectSlug === project.slug && (
@@ -124,11 +134,12 @@ export function WorkspaceSidebar({
                     <button
                       key={project.id}
                       type="button"
-                      className={`project-list-item ${
+                      className={`project-list-item project-list-item-archived-section ${
                         selectedProjectSlug === project.slug ? "project-list-item-active" : ""
                       }`}
                       onClick={() => onSelectProject(project.slug)}
                     >
+                      <span className="project-list-strip project-list-strip-archived" aria-hidden="true" />
                       <span className="project-list-text">
                         <span className="project-list-name">{project.name}</span>
                       </span>
