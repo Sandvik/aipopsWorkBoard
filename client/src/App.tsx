@@ -59,9 +59,27 @@ export default function App() {
   } | null>(null);
   const [showAbout, setShowAbout] = useState(false);
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
+  const [isMobileLike, setIsMobileLike] = useState(false);
 
   // Async-feedback (busy/error/message) deles af alle domæne-handlers via runAction.
   const { busy, error, message, setError, setMessage, runAction } = useAsyncFeedback();
+
+  // Enkel detektion af "mobil-lignende" view (lille viewport og typisk touch).
+  useEffect(() => {
+    function evaluateMobileLike() {
+      const width = window.innerWidth;
+      const isNarrow = width < 900;
+      const prefersCoarse =
+        typeof window.matchMedia === "function"
+          ? window.matchMedia("(pointer: coarse)").matches
+          : false;
+      setIsMobileLike(isNarrow && prefersCoarse);
+    }
+
+    evaluateMobileLike();
+    window.addEventListener("resize", evaluateMobileLike);
+    return () => window.removeEventListener("resize", evaluateMobileLike);
+  }, []);
 
   // Ved første render forsøger vi at gendanne seneste arbejdsmappe
   // og loade projekter/opgaver derfra.
@@ -254,6 +272,18 @@ export default function App() {
 
   return (
     <div className="app-root">
+      {isMobileLike ? (
+        <div className="mobile-warning-backdrop">
+          <div className="mobile-warning-card">
+            <h1 className="mobile-warning-title">AIPOPS Workboard virker bedst på en computer</h1>
+            <p className="mobile-warning-text">
+              Dette board er designet til større skærme. Åbn siden på en bærbar eller desktop for
+              at arbejde med dine projekter og opgaver.
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       <AppHeader error={error} message={message} />
 
       <div className={`app-shell ${selectedTask ? "" : "without-task-panel"}`}>

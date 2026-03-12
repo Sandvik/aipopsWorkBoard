@@ -1477,3 +1477,39 @@ label {
     min-height: auto;
   }
 }
+
+.mobile-warning-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+}
+
+.mobile-warning-card {
+  max-width: 26rem;
+  margin: 0 1.5rem;
+  padding: 1.8rem 2rem;
+  border-radius: 1.25rem;
+  background: #0b1120;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  display: grid;
+  gap: 0.9rem;
+  text-align: left;
+}
+
+.mobile-warning-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.mobile-warning-text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #cbd5f5;
+}
