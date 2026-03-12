@@ -9,11 +9,9 @@ export function AppFooter({ onShowAbout }: AppFooterProps) {
       <div className="app-footer-main">
         <div className="app-footer-brand">
           <span className="app-footer-brand-line">
-            AIPOPS Workboard er designet og udviklet af AIPOPS.
+            AIPOPS Workboard er udviklet af AIPOPS.
           </span>
-          <span className="app-footer-note">
-            Arbejder direkte på dine lokale filer – ingen cloud-konto eller login.
-          </span>
+      
         </div>
         <nav className="app-footer-links" aria-label="Footer links">
           <button
@@ -26,7 +24,12 @@ export function AppFooter({ onShowAbout }: AppFooterProps) {
         </nav>
       </div>
       <div className="app-footer-meta">
-        <span className="app-footer-meta-text">© {new Date().getFullYear()} AIPOPS</span>
+        <span className="app-footer-meta-text">
+          © {new Date().getFullYear()}{" "}
+          <a href="https://www.aipops.com/" target="_blank" rel="noopener noreferrer">
+            AIPOPS
+          </a>
+        </span>
       </div>
     </footer>
   );

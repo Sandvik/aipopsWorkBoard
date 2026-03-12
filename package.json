@@ -6,7 +6,7 @@
     "client"
   ],
   "scripts": {
-    "build": "npm run build -w client",
+    "build": "npm run build -w client && node scripts/copy-built-index.js",
     "dev": "npm run dev -w client",
     "preview": "npm run preview -w client"
   },

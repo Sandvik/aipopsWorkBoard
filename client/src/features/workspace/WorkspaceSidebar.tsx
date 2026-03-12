@@ -47,25 +47,27 @@ export function WorkspaceSidebar({
             <div className="workspace-actions">
               <button
                 type="button"
-                className="primary-button workspace-switch"
+                className="primary-button"
                 onClick={onPickWorkspace}
                 disabled={busy}
+                title={workspaceName ? "Skift til en anden arbejdsmappe" : "Vælg en arbejdsmappe for at komme i gang"}
               >
                 {workspaceName ? "Skift mappe" : "Vælg mappe"}
               </button>
+            </div>
+            <div>
               <button
                 type="button"
-                className="secondary-button workspace-refresh"
+                className="secondary-button"
                 onClick={onRefreshData}
                 disabled={busy}
-                title="Hent seneste data fra mappen (anbefales ved delt mappe)"
+                title="Ved delt mappe: klik for at hente andre brugeres ændringer"
               >
                 Opdater
               </button>
             </div>
             <p className="workspace-shared-hint muted small">
-              Ved delt mappe (netværksdrev): Undgå at flere redigerer samme opgave samtidigt. Brug &quot;Opdater&quot; for at
-              se andre brugeres ændringer.
+            
             </p>
           </div>
 
@@ -73,12 +75,13 @@ export function WorkspaceSidebar({
             <div className="projects-head-row">
               <div>
                 <p className="eyebrow">Projekter</p>
-                <p className="muted small">Vælg et projekt for at se opgaverne.</p>
+               
                 <button
                   type="button"
-                  className="primary-button new-project-button"
+                  className="primary-button"
                   disabled={busy || !hasWorkspace}
                   onClick={onCreateProject}
+                title="Opret et nyt projekt i den valgte arbejdsmappe"
                 >
                   + Nyt projekt
                 </button>
