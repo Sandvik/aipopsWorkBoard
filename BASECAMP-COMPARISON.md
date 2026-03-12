@@ -173,7 +173,8 @@ Du følger Basecamps “kill overkill”‑ånd: lave én ting godt (simpelt lok
    - Det er i tråd med Basecamps “What’s on my plate today?”.
 
 3. **Refaktorér UI i mindre komponenter**
-   - Teknisk, men også UX‑mæssigt: lettere at udvikle små forbedringer uden at rode i én stor fil.
+   - (Allerede gjort i første iteration:) Den tidligere, meget store `App.tsx` er nu brudt op i mindre, feature‑orienterede komponenter (`features/tasks/TaskBoard`, `features/tasks/TaskDetailsPanel`, `features/tasks/taskUi`) og et fælles infrastruktur‑lag (`infrastructure/storage.ts`).
+   - Teknisk, men også UX‑mæssigt: det gør det langt lettere at udvikle små forbedringer i f.eks. boardet eller detaljer‑panelet uden at rode i én stor fil, og det matcher Basecamps fokus på små, velafgrænsede dele.
 
 Samlet set ligger AIPOPS Workboard ret tæt på Basecamps ånd:  
 **simpelt, roligt, målrettet praktisk brug** – bare i en mindre, lokalt‑orienteret version.
