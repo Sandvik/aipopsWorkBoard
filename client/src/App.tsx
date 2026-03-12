@@ -145,6 +145,7 @@ export default function App() {
     cancelLabel?: string;
     onConfirm: () => void | Promise<void>;
   } | null>(null);
+  const [showAbout, setShowAbout] = useState(false);
 
   useEffect(() => {
     void (async () => {
@@ -255,7 +256,8 @@ export default function App() {
   useEffect(() => {
     function handleKeydown(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        setSelectedTaskId("");
+        if (showAbout) setShowAbout(false);
+        else setSelectedTaskId("");
       }
       if (event.key === "Enter" && event.ctrlKey) {
         if (selectedTask && !busy && panelDraft.title.trim() && panelDraft.projectSlug) {
@@ -267,7 +269,7 @@ export default function App() {
 
     window.addEventListener("keydown", handleKeydown);
     return () => window.removeEventListener("keydown", handleKeydown);
-  }, [selectedTask, busy, panelDraft.title, panelDraft.projectSlug]);
+  }, [selectedTask, busy, panelDraft.title, panelDraft.projectSlug, showAbout]);
 
   async function runAction(action: () => Promise<void>, successMessage?: string) {
     try {
@@ -315,6 +317,14 @@ export default function App() {
         setTourStep(1);
       }
     });
+  }
+
+  async function handleRefreshData() {
+    const handle = await requireWorkspace();
+    await runAction(
+      () => loadAllData(handle, selectedProjectSlug || undefined, selectedTaskId || null),
+      "Data opdateret.",
+    );
   }
 
   async function handlePickWorkspace() {
@@ -552,14 +562,28 @@ export default function App() {
                 >
                   {workspaceName || "Ingen mappe valgt"}
                 </p>
-                <button
-                  type="button"
-                  className="primary-button workspace-switch"
-                  onClick={handlePickWorkspace}
-                  disabled={busy}
-                >
-                  {workspaceName ? "Skift mappe" : "Vælg mappe"}
-                </button>
+                <div className="workspace-actions">
+                  <button
+                    type="button"
+                    className="primary-button workspace-switch"
+                    onClick={handlePickWorkspace}
+                    disabled={busy}
+                  >
+                    {workspaceName ? "Skift mappe" : "Vælg mappe"}
+                  </button>
+                  <button
+                    type="button"
+                    className="secondary-button workspace-refresh"
+                    onClick={() => void handleRefreshData()}
+                    disabled={busy}
+                    title="Hent seneste data fra mappen (anbefales ved delt mappe)"
+                  >
+                    Opdater
+                  </button>
+                </div>
+                <p className="workspace-shared-hint muted small">
+                  Ved delt mappe (netværksdrev): Undgå at flere redigerer samme opgave samtidigt. Brug &quot;Opdater&quot; for at se andre brugeres ændringer.
+                </p>
               </div>
 
               <div className="workspace-card projects-card">
@@ -1208,6 +1232,61 @@ export default function App() {
                 {confirmState.confirmLabel ?? "OK"}
               </button>
             </div>
+          </div>
+        </div>
+      ) : null}
+
+      <footer className="app-footer">
+        <div className="app-footer-main">
+          <div className="app-footer-brand">
+            <span className="app-footer-brand-line">
+              AIPOPS Workboard er designet og udviklet af AIPOPS.
+            </span>
+            <span className="app-footer-note">
+              Arbejder direkte på dine lokale filer – ingen cloud-konto eller login.
+            </span>
+          </div>
+          <nav className="app-footer-links" aria-label="Footer links">
+            <button
+              type="button"
+              className="app-footer-link"
+              onClick={() => setShowAbout(true)}
+            >
+              Om AIPOPS Workboard
+            </button>
+          </nav>
+        </div>
+        <div className="app-footer-meta">
+          <span className="app-footer-meta-text">© {new Date().getFullYear()} AIPOPS</span>
+        </div>
+      </footer>
+
+      {showAbout ? (
+        <div
+          className="about-backdrop"
+          onClick={() => setShowAbout(false)}
+          role="presentation"
+        >
+          <div className="about-modal" onClick={(e) => e.stopPropagation()}>
+            <h2 className="about-title">Om AIPOPS Workboard</h2>
+            <p className="about-p">
+              AIPOPS Workboard er et værktøj til at holde styr på opgaver og projekter. Du vælger
+              selv en mappe på din computer (eller et delt drev), og alt data – projekter, opgaver,
+              kommentarer og vedhæftninger – gemmes kun der. Der bruges ingen cloud og ingen konto;
+              du har fuld kontrol over dine data.
+            </p>
+            <p className="about-p">
+              Appen kører i browseren og kræver en Chromium-baseret browser (Chrome, Edge m.fl.)
+              til valg af mappe. Ved delt mappe anbefales det at bruge knappen &quot;Opdater&quot; for at hente
+              andre brugeres ændringer og undgå at flere redigerer samme opgave samtidigt.
+            </p>
+            <button
+              type="button"
+              className="primary-button"
+              onClick={() => setShowAbout(false)}
+            >
+              Luk
+            </button>
           </div>
         </div>
       ) : null}
