@@ -34,8 +34,12 @@ export function WorkspaceSidebar({
   return (
     <aside className="left-rail">
       <div className="app-brand">
-        <span className="app-brand-name">AIPOPS Workboard</span>
-        <p className="muted small">Opgaver og projekter</p>
+       
+        <img
+          className="app-brand-image"
+          src="/aipops-workboard-sidebar.png"
+          alt="AIPOPS Workboard – ét roligt board til opgaver og projekter"
+        />
       </div>
       {hasWorkspace ? (
         <>

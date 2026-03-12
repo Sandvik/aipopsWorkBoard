@@ -6,7 +6,7 @@ import type { ProjectRecord, TaskRecord, TaskStatus } from "./types";
 import { pickWorkspaceDirectory } from "./infrastructure/storage";
 import { TaskBoard } from "./features/tasks/TaskBoard";
 import { TaskDetailsPanel } from "./features/tasks/TaskDetailsPanel";
-import { EMPTY_DRAFT, PanelDraft } from "./features/tasks/taskUi";
+import { EMPTY_DRAFT, PanelDraft, isOverdue } from "./features/tasks/taskUi";
 import { TaskToolbar } from "./features/tasks/TaskToolbar";
 import { useTaskFilters } from "./features/tasks/useTaskFilters";
 import { useTaskActions } from "./features/tasks/useTaskActions";
@@ -116,6 +116,17 @@ export default function App() {
     filtersActive,
     resetFilters,
   } = useTaskFilters({ tasksByProject, selectedProjectSlug });
+
+  const totalVisibleTasks = visibleTasks.length;
+  const overdueVisibleTasks = visibleTasks.filter((task) => isOverdue(task.deadline)).length;
+  const todayLabel = new Date().toDateString();
+  const dueTodayVisibleTasks = visibleTasks.filter(
+    (task) => task.deadline && new Date(task.deadline).toDateString() === todayLabel,
+  ).length;
+  const doingVisibleTasks = visibleTasks.filter((task) => task.status === "doing").length;
+  const highPriorityVisibleTasks = visibleTasks.filter(
+    (task) => task.priority === "High" || task.priority === "Critical",
+  ).length;
 
   const {
     selectedTask,
@@ -280,6 +291,11 @@ export default function App() {
                 onResetFilters={resetFilters}
                 isCreatingTask={isCreatingTask}
                 busy={busy}
+                totalVisibleTasks={totalVisibleTasks}
+                overdueVisibleTasks={overdueVisibleTasks}
+                dueTodayVisibleTasks={dueTodayVisibleTasks}
+                doingVisibleTasks={doingVisibleTasks}
+                highPriorityVisibleTasks={highPriorityVisibleTasks}
                 newTaskTitle={newTaskTitle}
                 newTaskAssignee={newTaskAssignee}
                 newTaskProjectSlug={newTaskProjectSlug}

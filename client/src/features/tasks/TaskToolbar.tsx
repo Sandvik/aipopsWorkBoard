@@ -23,6 +23,11 @@ type TaskToolbarProps = {
   onResetFilters: () => void;
   isCreatingTask: boolean;
   busy: boolean;
+  totalVisibleTasks: number;
+  overdueVisibleTasks: number;
+  dueTodayVisibleTasks: number;
+  doingVisibleTasks: number;
+  highPriorityVisibleTasks: number;
   newTaskTitle: string;
   newTaskAssignee: string;
   newTaskProjectSlug: string;
@@ -51,6 +56,11 @@ export function TaskToolbar({
   onResetFilters,
   isCreatingTask,
   busy,
+  totalVisibleTasks,
+  overdueVisibleTasks,
+  dueTodayVisibleTasks,
+  doingVisibleTasks,
+  highPriorityVisibleTasks,
   newTaskTitle,
   newTaskAssignee,
   newTaskProjectSlug,
@@ -61,24 +71,62 @@ export function TaskToolbar({
   onCancelNewTask,
   onSubmitNewTask,
 }: TaskToolbarProps) {
+  const hasProblems = overdueVisibleTasks > 0 || highPriorityVisibleTasks > 0;
+  const hasTodayWork = dueTodayVisibleTasks > 0 || doingVisibleTasks > 0;
+  const summaryText = hasProblems
+    ? "Lidt at indhente i dag"
+    : hasTodayWork
+      ? "God arbejdsdag i gang"
+      : "Du har fint styr på tingene";
+
   return (
     <div className="toolbar">
       <div className="toolbar-row">
         <div className="toolbar-search">
-          <input
-            value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Søg i opgaver"
-          />
+          <div className="input-with-icon">
+            <span className="input-with-icon-icon">🔍</span>
+            <input
+              value={search}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder="Søg i opgaver"
+            />
+          </div>
+        </div>
+        <div className="toolbar-stats">
+          <span className="toolbar-stats-summary">{summaryText}</span>
+          <span className="toolbar-stat-chip toolbar-stat-chip-primary toolbar-stat-chip-main">
+            {totalVisibleTasks || "Ingen"} opgave
+            {totalVisibleTasks === 1 ? "" : "r"}
+          </span>
+          {dueTodayVisibleTasks > 0 ? (
+            <span className="toolbar-stat-chip toolbar-stat-chip-today">
+              {dueTodayVisibleTasks} i dag
+            </span>
+          ) : null}
+          {overdueVisibleTasks > 0 ? (
+            <span className="toolbar-stat-chip toolbar-stat-chip-danger toolbar-stat-chip-overdue">
+              {overdueVisibleTasks} forsinket
+              {overdueVisibleTasks === 1 ? "" : "e"}
+            </span>
+          ) : null}
+          {doingVisibleTasks > 0 ? (
+            <span className="toolbar-stat-chip toolbar-stat-chip-doing">
+              {doingVisibleTasks} i gang
+            </span>
+          ) : null}
+          {highPriorityVisibleTasks > 0 ? (
+            <span className="toolbar-stat-chip toolbar-stat-chip-priority">
+              {highPriorityVisibleTasks} høj prioritet
+            </span>
+          ) : null}
         </div>
         <div className="toolbar-actions">
           <button
             type="button"
-            className="ghost-button"
+            className={`ghost-button filter-chip ${filtersActive ? "filter-chip-active" : ""}`}
             onClick={onToggleFilters}
           >
-            Filtre
-            {filtersActive && <span className="filter-badge">●</span>}
+            <span className="filter-chip-label">Filtre</span>
           </button>
           <button
             type="button"
@@ -86,7 +134,7 @@ export function TaskToolbar({
             disabled={busy || !projects.length}
             onClick={onOpenNewTask}
           >
-            Ny opgave
+            + Ny opgave
           </button>
         </div>
       </div>
