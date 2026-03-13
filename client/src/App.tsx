@@ -3,7 +3,8 @@
 // ligger i feature-hooks (tasks, projekter, workspace, async-feedback).
 import { useEffect, useRef, useState } from "react";
 import type { ProjectRecord, TaskRecord, TaskStatus } from "./types";
-import { pickWorkspaceDirectory } from "./infrastructure/storage";
+import { loadConfig, pickWorkspaceDirectory, saveConfig } from "./infrastructure/storage";
+import { summarizeDescription, suggestTaskDescription } from "./infrastructure/aiClient";
 import { TaskBoard } from "./features/tasks/TaskBoard";
 import { TaskDetailsPanel } from "./features/tasks/TaskDetailsPanel";
 import { EMPTY_DRAFT, PanelDraft, isOverdue } from "./features/tasks/taskUi";
@@ -23,6 +24,7 @@ import { ConfirmModal } from "./features/layout/ConfirmModal";
 import { AppFooter } from "./features/layout/AppFooter";
 import { AboutModal } from "./features/layout/AboutModal";
 import { useAsyncFeedback } from "./features/layout/useAsyncFeedback";
+import { AiSettingsModal } from "./features/layout/AiSettingsModal";
 
 type WorkspaceHandle = FileSystemDirectoryHandle | null;
 
@@ -45,6 +47,7 @@ export default function App() {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskAssignee, setNewTaskAssignee] = useState("");
   const [newTaskProjectSlug, setNewTaskProjectSlug] = useState("");
+  const [newTaskDescription, setNewTaskDescription] = useState("");
   const [commentText, setCommentText] = useState("");
   const [taskJustSaved, setTaskJustSaved] = useState(false);
   const [showTour, setShowTour] = useState(false);
@@ -60,6 +63,8 @@ export default function App() {
   const [showAbout, setShowAbout] = useState(false);
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const [isMobileLike, setIsMobileLike] = useState(false);
+  const [aiApiKey, setAiApiKey] = useState<string | null>(null);
+  const [showAiSetup, setShowAiSetup] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
     try {
@@ -115,6 +120,25 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Når der er en aktiv arbejdsmappe, forsøger vi at læse konfigurationsfilen.
+  // Herfra afgør vi bl.a., om AI er sat op for denne mappe.
+  useEffect(() => {
+    void (async () => {
+      if (!workspace) {
+        setAiApiKey(null);
+        return;
+      }
+      const config = await loadConfig(workspace);
+      const nextKey = config?.ai?.apiKey ?? null;
+      setAiApiKey(nextKey);
+      // Hvis der ikke er nogen nøgle og brugeren ikke tidligere er blevet præsenteret
+      // for AI-opsætning for denne arbejdsmappe, viser vi en lille wizard.
+      if (!nextKey && !config?.ai?.seenSetup) {
+        setShowAiSetup(true);
+      }
+    })();
+  }, [workspace]);
+
   // Loader projekter + tasks fra filsystemet og opdaterer hele view-modellen
   // via den fælles loadAllDataModel-helper.
   async function loadAllData(
@@ -163,6 +187,50 @@ export default function App() {
     (task) => task.priority === "High" || task.priority === "Critical",
   ).length;
 
+  const activeProjectSlugs = projects.filter((project) => !project.archived).map((project) => project.slug);
+  const allActiveTasks = activeProjectSlugs.flatMap((slug) => tasksByProject[slug] ?? []);
+  const totalActiveTasks = allActiveTasks.length;
+  const totalDoneTasks = allActiveTasks.filter((task) => task.status === "done").length;
+  const totalBacklogTasks = allActiveTasks.filter((task) => task.status === "backlog").length;
+  const totalTodoTasks = allActiveTasks.filter((task) => task.status === "todo").length;
+  const totalDoingTasks = allActiveTasks.filter((task) => task.status === "doing").length;
+  const workspaceProgressLabel =
+    totalActiveTasks === 0
+      ? "Ingen opgaver endnu"
+      : `${totalActiveTasks} opgave${totalActiveTasks === 1 ? "" : "r"} \u00b7 ${
+          totalDoneTasks || "Ingen"
+        } færdig${totalDoneTasks === 1 ? "" : "e"} (${Math.round(
+          (totalDoneTasks / Math.max(totalActiveTasks, 1)) * 100,
+        )}%)`;
+  const workspaceProgressTooltip =
+    totalActiveTasks === 0
+      ? "Der er endnu ingen opgaver i dine aktive projekter."
+      : `Aktive projekter: ${activeProjectSlugs.length} \u00b7 Opgaver i alt: ${totalActiveTasks} \u00b7 Backlog: ${totalBacklogTasks} \u00b7 Klar: ${totalTodoTasks} \u00b7 I gang: ${totalDoingTasks} \u00b7 Færdige: ${totalDoneTasks}`;
+
+  const projectTooltips: Record<string, string> = {};
+  const projectTaskCounts: Record<string, number> = {};
+  projects.forEach((project) => {
+    const tasks = tasksByProject[project.slug] ?? [];
+    projectTaskCounts[project.slug] = tasks.length;
+    if (!tasks.length) {
+      projectTooltips[project.slug] = "Ingen opgaver endnu i dette projekt.";
+      return;
+    }
+    const backlog = tasks.filter((task) => task.status === "backlog").length;
+    const todo = tasks.filter((task) => task.status === "todo").length;
+    const doing = tasks.filter((task) => task.status === "doing").length;
+    const done = tasks.filter((task) => task.status === "done").length;
+    const overdue = tasks.filter((task) => isOverdue(task.deadline)).length;
+    const highPriority = tasks.filter(
+      (task) => task.priority === "High" || task.priority === "Critical",
+    ).length;
+    projectTooltips[project.slug] =
+      `Opgaver i alt: ${tasks.length} \u00b7 Backlog: ${backlog} \u00b7 Klar: ${todo} \u00b7 ` +
+      `I gang: ${doing} \u00b7 Færdige: ${done}` +
+      (overdue ? ` \u00b7 Forsinkede: ${overdue}` : "") +
+      (highPriority ? ` \u00b7 Høj prioritet: ${highPriority}` : "");
+  });
+
   const {
     selectedTask,
     handleCreateTask,
@@ -185,6 +253,8 @@ export default function App() {
     setNewTaskAssignee,
     newTaskProjectSlug,
     setNewTaskProjectSlug,
+    newTaskDescription,
+    setNewTaskDescription,
     isCreatingTask,
     setIsCreatingTask,
     commentText,
@@ -311,6 +381,10 @@ export default function App() {
           activeProjects={activeProjects}
           archivedProjects={archivedProjects}
           selectedProjectSlug={selectedProjectSlug}
+          workspaceProgressLabel={workspaceProgressLabel}
+          workspaceProgressTooltip={workspaceProgressTooltip}
+          projectTooltips={projectTooltips}
+          projectTaskCounts={projectTaskCounts}
           onPickWorkspace={() => void handlePickWorkspace()}
           onRefreshData={() => void handleRefreshData()}
           onCreateProject={() => setShowNewProjectModal(true)}
@@ -352,6 +426,26 @@ export default function App() {
                 onNewTaskTitleChange={(value) => setNewTaskTitle(value)}
                 onNewTaskAssigneeChange={(value) => setNewTaskAssignee(value)}
                 onNewTaskProjectSlugChange={(value) => setNewTaskProjectSlug(value)}
+                newTaskDescription={newTaskDescription}
+                onNewTaskDescriptionChange={(value) => setNewTaskDescription(value)}
+                onAiSuggestNewTaskDescription={() => {
+                  if (!aiApiKey) {
+                    setShowAiSetup(true);
+                    return;
+                  }
+                  if (!newTaskTitle && !newTaskDescription) {
+                    setMessage("Skriv mindst en titel eller lidt tekst først.");
+                    return;
+                  }
+                  void runAction(async () => {
+                    const suggestion = await suggestTaskDescription({
+                      apiKey: aiApiKey,
+                      title: newTaskTitle,
+                      currentDescription: newTaskDescription,
+                    });
+                    setNewTaskDescription(suggestion);
+                  });
+                }}
                 onOpenNewTask={() => {
                   setIsCreatingTask(true);
                   setNewTaskProjectSlug(selectedProjectSlug || projects[0]?.slug || "");
@@ -361,6 +455,7 @@ export default function App() {
                   setNewTaskTitle("");
                   setNewTaskAssignee("");
                   setNewTaskProjectSlug("");
+                  setNewTaskDescription("");
                 }}
                 onSubmitNewTask={handleCreateTask}
               />
@@ -410,6 +505,28 @@ export default function App() {
             commentText={commentText}
             busy={busy}
             taskJustSaved={taskJustSaved}
+            onAiSummarizeDescription={() => {
+              if (!aiApiKey) {
+                setShowAiSetup(true);
+                return;
+              }
+              void runAction(async () => {
+                const text = panelDraft.description.trim() || panelDraft.title.trim();
+                if (!text) {
+                  setMessage("Skriv mindst en titel eller lidt tekst først.");
+                  return;
+                }
+                const result = await summarizeDescription({
+                  apiKey: aiApiKey,
+                  text,
+                });
+                setPanelDraft((current) => ({
+                  ...current,
+                  description: result.shorter,
+                }));
+              });
+            }}
+            onOpenAiSettings={() => setShowAiSetup(true)}
             onClose={() => setSelectedTaskId("")}
             onDraftChange={(draft) => setPanelDraft(draft)}
             onCommentTextChange={(value) => setCommentText(value)}
@@ -447,6 +564,39 @@ export default function App() {
         />
       ) : null}
 
+      <AiSettingsModal
+        open={showAiSetup}
+        busy={busy}
+        initialApiKey={aiApiKey}
+        onSkip={async () => {
+          setShowAiSetup(false);
+          if (!workspace) return;
+          const existing = (await loadConfig(workspace)) ?? {};
+          await saveConfig(workspace, {
+            ...existing,
+            ai: {
+              ...existing.ai,
+              seenSetup: true,
+              apiKey: existing.ai?.apiKey,
+            },
+          });
+        }}
+        onSave={async (nextKey) => {
+          setShowAiSetup(false);
+          if (!workspace) return;
+          const existing = (await loadConfig(workspace)) ?? {};
+          await saveConfig(workspace, {
+            ...existing,
+            ai: {
+              ...existing.ai,
+              apiKey: nextKey ?? undefined,
+              seenSetup: true,
+            },
+          });
+          setAiApiKey(nextKey);
+        }}
+      />
+
       <NewProjectModal
         open={showNewProjectModal}
         value={newProjectName}
@@ -463,7 +613,11 @@ export default function App() {
       />
 
       <AppFooter onShowAbout={() => setShowAbout(true)} />
-      <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />
+      <AboutModal
+        show={showAbout}
+        onClose={() => setShowAbout(false)}
+        onOpenAiSettings={() => setShowAiSetup(true)}
+      />
     </div>
   );
 }

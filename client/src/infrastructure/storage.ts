@@ -27,6 +27,20 @@ const PROJECTS_DIR_NAME = "projects";
 // En arbejdsmappe er roden, som brugeren vælger via showDirectoryPicker.
 type WorkspaceHandle = FileSystemDirectoryHandle;
 
+// Let konfigurationsfil i roden af arbejds­mappen. Bruges bl.a. til AI-indstillinger,
+// så brugeren kan gemme egne nøgler og præferencer sammen med sine data.
+const CONFIG_FILE_NAME = "aipops.config.json";
+
+export type AppConfig = {
+  ai?: {
+    provider?: "openai";
+    apiKey?: string;
+    // Markør der kan bruges til at huske, at brugeren allerede er blevet tilbudt AI-opsætning
+    // for denne arbejdsmappe, selvom der ikke er angivet nogen nøgle.
+    seenSetup?: boolean;
+  };
+};
+
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
@@ -131,6 +145,24 @@ async function fileExists(dir: FileSystemDirectoryHandle, fileName: string) {
   } catch {
     return false;
   }
+}
+
+// Læser konfigurationsfilen fra roden af arbejds­mappen, hvis den findes.
+export async function loadConfig(workspace: WorkspaceHandle): Promise<AppConfig | null> {
+  try {
+    if (!(await fileExists(workspace, CONFIG_FILE_NAME))) {
+      return null;
+    }
+    return await readJsonFile<AppConfig>(workspace, CONFIG_FILE_NAME);
+  } catch {
+    // En korrupt eller uventet config skal ikke vælte hele appen – vi behandler det som "ingen config".
+    return null;
+  }
+}
+
+// Skriver konfigurationsfilen til roden af arbejds­mappen.
+export async function saveConfig(workspace: WorkspaceHandle, config: AppConfig): Promise<void> {
+  await writeJsonFile(workspace, CONFIG_FILE_NAME, config);
 }
 
 async function copyFileHandleToDirectory(

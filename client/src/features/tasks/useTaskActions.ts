@@ -39,6 +39,8 @@ type UseTaskActionsArgs = {
   setNewTaskAssignee: (value: string) => void;
   newTaskProjectSlug: string;
   setNewTaskProjectSlug: (value: string) => void;
+  newTaskDescription: string;
+  setNewTaskDescription: (value: string) => void;
   isCreatingTask: boolean;
   setIsCreatingTask: (value: boolean) => void;
   commentText: string;
@@ -71,6 +73,8 @@ export function useTaskActions({
   setNewTaskAssignee,
   newTaskProjectSlug,
   setNewTaskProjectSlug,
+  newTaskDescription,
+  setNewTaskDescription,
   isCreatingTask,
   setIsCreatingTask,
   commentText,
@@ -126,10 +130,12 @@ export function useTaskActions({
       const task = await createTask(handle, targetProjectSlug, {
         title: newTaskTitle,
         assignee: newTaskAssignee,
+        description: newTaskDescription,
       });
       setNewTaskTitle("");
       setNewTaskAssignee("");
       setNewTaskProjectSlug("");
+      setNewTaskDescription("");
       setIsCreatingTask(false);
       resetFilters();
       await loadAllData(handle, targetProjectSlug, task.id);

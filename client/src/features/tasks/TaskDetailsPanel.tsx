@@ -35,6 +35,9 @@ type TaskDetailsPanelProps = {
   onAttachmentOpen: (id: string) => void;
   // Klik på "Slet" ved en vedhæftning.
   onAttachmentDelete: (id: string) => void;
+  // AI-hjælp (kaldes fra App, viser modal hvis der mangler nøgle).
+  onAiSummarizeDescription: () => void;
+  onOpenAiSettings: () => void;
 };
 
 export function TaskDetailsPanel({
@@ -52,6 +55,8 @@ export function TaskDetailsPanel({
   onAttachmentChange,
   onAttachmentOpen,
   onAttachmentDelete,
+  onAiSummarizeDescription,
+  onOpenAiSettings,
 }: TaskDetailsPanelProps) {
   return (
     <aside className="task-panel">
@@ -91,6 +96,16 @@ export function TaskDetailsPanel({
               }
             />
           </label>
+          <div className="ai-inline-actions">
+            <button
+              type="button"
+              className="ghost-button"
+              onClick={onAiSummarizeDescription}
+              disabled={busy}
+            >
+              ✨ Hjælp til beskrivelse
+            </button>
+          </div>
         </div>
       </div>
 

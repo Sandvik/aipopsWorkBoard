@@ -37,6 +37,9 @@ type TaskToolbarProps = {
   onNewTaskTitleChange: (value: string) => void;
   onNewTaskAssigneeChange: (value: string) => void;
   onNewTaskProjectSlugChange: (value: string) => void;
+  newTaskDescription: string;
+  onNewTaskDescriptionChange: (value: string) => void;
+  onAiSuggestNewTaskDescription: () => void;
   onOpenNewTask: () => void;
   onCancelNewTask: () => void;
   onSubmitNewTask: (event: FormEvent) => void;
@@ -73,6 +76,9 @@ export function TaskToolbar({
   onNewTaskTitleChange,
   onNewTaskAssigneeChange,
   onNewTaskProjectSlugChange,
+  newTaskDescription,
+  onNewTaskDescriptionChange,
+  onAiSuggestNewTaskDescription,
   onOpenNewTask,
   onCancelNewTask,
   onSubmitNewTask,
@@ -243,26 +249,47 @@ export function TaskToolbar({
               />
             </label>
           </div>
+          <label className="new-task-description">
+            <span className="field-label">Beskrivelse (valgfri)</span>
+            <textarea
+              rows={2}
+              value={newTaskDescription}
+              onChange={(event) => onNewTaskDescriptionChange(event.target.value)}
+              placeholder="Kort tekst om opgaven eller kopieret fra mail."
+            />
+          </label>
+          <div className="new-task-footer-row">
+            <div className="ai-inline-actions">
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={onAiSuggestNewTaskDescription}
+                disabled={busy}
+              >
+                ✨ Hjælp til beskrivelse
+              </button>
+            </div>
+            <div className="new-task-actions">
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={onCancelNewTask}
+              >
+                Annuller
+              </button>
+              <button
+                type="submit"
+                className="primary-button"
+                disabled={busy || !newTaskTitle.trim()}
+              >
+                Opret opgave
+              </button>
+            </div>
+          </div>
           <p className="form-note new-task-mail-hint">
             Tip: Får du opgaven pr. mail, kan du indsætte emnelinjen i titel og teksten fra mailen i
             beskrivelsen.
           </p>
-          <div className="new-task-actions">
-            <button
-              type="button"
-              className="ghost-button"
-              onClick={onCancelNewTask}
-            >
-              Annuller
-            </button>
-            <button
-              type="submit"
-              className="primary-button"
-              disabled={busy || !newTaskTitle.trim()}
-            >
-              Opret opgave
-            </button>
-          </div>
         </form>
       ) : null}
     </div>

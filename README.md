@@ -38,6 +38,20 @@ Alle projekter og opgaver gemmes som filer i en mappe, du selv vælger på din m
   - **“Slet opgave”** (rød knap) sletter opgaven helt (inkl. dens filer) efter bekræftelse.  
   - Nederst i panelet sidder “Slet opgave”/“Gem opgave” altid fast (sticky), så de er synlige selv på små skærme.
 
+- **AI‑hjælp til beskrivelser (valgfrit)**
+  - Du kan tilføje din **egen OpenAI API‑nøgle** via dialogen **“AI‑indstillinger (valgfrit)”**, som:
+    - vises automatisk første gang du vælger en arbejdsmappe, eller  
+    - kan åbnes senere fra **“Om AIPOPS Workboard” → “AI‑indstillinger”**.
+  - Nøglen gemmes kun lokalt i arbejds­mappen i en lille fil `aipops.config.json` og bruges kun, når du selv trykker på en AI‑knap.
+  - Når der er angivet en nøgle, får du:
+    - I værktøjslinjen (“Ny opgave”): knappen **“✨ Hjælp til tekst”**, der kan:
+      - foreslå en ny opgavebeskrivelse ud fra titlen, eller  
+      - gøre en meget kort beskrivelse lidt mere fyldig og forklarende.
+    - I opgave‑detaljepanelet: knappen **“✨ Hjælp til beskrivelse”**, der kan:
+      - opbygge en beskrivelse ud fra titlen, hvis feltet er tomt, eller  
+      - forbedre/stampe en eksisterende tekst, så den bliver mere klar (eller lidt kortere, hvis den er meget lang).
+  - Hvis du trykker på en AI‑knap **uden** at have gemt en nøgle endnu, åbnes AI‑opsætningsdialogen, så du kan indtaste nøglen først.
+
 - **Filtrering & søgning**
   - Søg i opgaver via feltet **“Søg i opgaver”**.  
   - Under **“Filtre”** kan du filtrere på prioritet og ansvarlig.  
@@ -65,6 +79,7 @@ Alle projekter og opgaver gemmes som filer i en mappe, du selv vælger på din m
 
   ```text
   <din-arbejdsmappe>/
+    aipops.config.json   # valgfri opsætning, bl.a. AI‑indstillinger
     project-data/
       projects/
         <project-slug>/

@@ -2,9 +2,10 @@
 type AboutModalProps = {
   show: boolean;
   onClose: () => void;
+  onOpenAiSettings?: () => void;
 };
 
-export function AboutModal({ show, onClose }: AboutModalProps) {
+export function AboutModal({ show, onClose, onOpenAiSettings }: AboutModalProps) {
   if (!show) return null;
 
   return (
@@ -21,17 +22,39 @@ export function AboutModal({ show, onClose }: AboutModalProps) {
           der. Der bruges ingen cloud og ingen konto; du har fuld kontrol over dine data.
         </p>
         <p className="about-p">
-          Appen kører i browseren og kræver en Chromium-baseret browser (Chrome, Edge m.fl.) til valg af mappe. Ved delt
-          mappe anbefales det at bruge knappen &quot;Opdater&quot; for at hente andre brugeres ændringer og undgå at flere
+          Appen kører i browseren og kræver en moderne browser (fx Chrome eller Edge) til valg af mappe. Ved delt mappe
+          anbefales det at bruge knappen &quot;Opdater&quot; for at hente andre brugeres ændringer og undgå at flere
           redigerer samme opgave samtidigt.
         </p>
-        <button
-          type="button"
-          className="primary-button"
-          onClick={onClose}
-        >
-          Luk
-        </button>
+        <p className="about-p">
+          Hvis du vil bruge samme board på flere computere, kan du gøre det på en enkel måde:
+        </p>
+        <ul className="about-list">
+          <li>Kopier hele arbejds­mappen (fx med USB eller et delt drev) til den nye computer.</li>
+          <li>Åbn AIPOPS Workboard dér og vælg den kopierede mappe som arbejdsmappe.</li>
+          <li>Alternativt kan du lægge arbejds­mappen i en synkroniseret mappe som OneDrive, Dropbox eller iCloud.</li>
+        </ul>
+        <div className="about-actions">
+          {onOpenAiSettings ? (
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => {
+                onClose();
+                onOpenAiSettings();
+              }}
+            >
+              AI-indstillinger
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className="primary-button"
+            onClick={onClose}
+          >
+            Luk
+          </button>
+        </div>
       </div>
     </div>
   );

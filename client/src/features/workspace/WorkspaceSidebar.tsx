@@ -15,6 +15,10 @@ type WorkspaceSidebarProps = {
   activeProjects: ProjectRecord[];
   archivedProjects: ProjectRecord[];
   selectedProjectSlug: string;
+  workspaceProgressLabel: string;
+  workspaceProgressTooltip: string;
+  projectTooltips: Record<string, string>;
+  projectTaskCounts: Record<string, number>;
   onPickWorkspace: () => void;
   onRefreshData: () => void;
   onCreateProject: () => void;
@@ -30,6 +34,10 @@ export function WorkspaceSidebar({
   activeProjects,
   archivedProjects,
   selectedProjectSlug,
+  workspaceProgressLabel,
+  workspaceProgressTooltip,
+  projectTooltips,
+  projectTaskCounts,
   onPickWorkspace,
   onRefreshData,
   onCreateProject,
@@ -59,6 +67,14 @@ export function WorkspaceSidebar({
               <p className="workspace-card-copy muted small">
                 Alt på boardet ligger i denne mappe.
               </p>
+              {workspaceProgressLabel ? (
+                <p
+                  className="workspace-progress-badge small"
+                  title={workspaceProgressTooltip || undefined}
+                >
+                  {workspaceProgressLabel}
+                </p>
+              ) : null}
             </div>
             <div className="workspace-card-actions">
               <div className="workspace-actions">
@@ -113,14 +129,19 @@ export function WorkspaceSidebar({
                   className={`project-list-item project-list-item-active-section ${
                     selectedProjectSlug === project.slug ? "project-list-item-active" : ""
                   }`}
+                  title={projectTooltips[project.slug] || undefined}
                   onClick={() => onSelectProject(project.slug)}
                 >
                   <span className="project-list-strip project-list-strip-active" aria-hidden="true" />
                   <span className="project-list-text">
-                    <span className="project-list-name">{project.name}</span>
-                    {selectedProjectSlug === project.slug && (
-                      <span className="project-list-meta">Aktivt projekt</span>
-                    )}
+                    <span className="project-list-name">
+                      {project.name}
+                      {typeof projectTaskCounts[project.slug] === "number" ? (
+                        <span className="project-task-count-badge">
+                          {projectTaskCounts[project.slug]}
+                        </span>
+                      ) : null}
+                    </span>
                   </span>
                 </button>
               ))}
@@ -140,11 +161,19 @@ export function WorkspaceSidebar({
                       className={`project-list-item project-list-item-archived-section ${
                         selectedProjectSlug === project.slug ? "project-list-item-active" : ""
                       }`}
+                      title={projectTooltips[project.slug] || undefined}
                       onClick={() => onSelectProject(project.slug)}
                     >
                       <span className="project-list-strip project-list-strip-archived" aria-hidden="true" />
                       <span className="project-list-text">
-                        <span className="project-list-name">{project.name}</span>
+                      <span className="project-list-name">
+                        {project.name}
+                        {typeof projectTaskCounts[project.slug] === "number" ? (
+                          <span className="project-task-count-badge">
+                            {projectTaskCounts[project.slug]}
+                          </span>
+                        ) : null}
+                      </span>
                       </span>
                     </button>
                   ))}
