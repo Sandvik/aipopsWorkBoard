@@ -65,14 +65,15 @@ export function WorkspaceEmptyState({
         <div className="empty-main-card">
           <h2>Få ét overblik over dine opgaver</h2>
           <p className="muted">
-            AIPOPS Workboard er et simpelt board til dine projekter og opgaver.
+            AIPOPS Workboard er et enkelt board til dine projekter og opgaver – især dem, der
+            starter som lange mails eller chats.
             <br />
             Alt gemmes som filer i en mappe på din egen computer – ingen servere, ingen login.
           </p>
           <ul className="empty-main-steps">
-            <li>Vælg en arbejdsmappe til dine data</li>
-            <li>Opret dit første projekt i sidebaren</li>
-            <li>Tilføj opgaver og træk dem mellem kolonnerne (To do / I gang / Færdig)</li>
+            <li>Vælg en arbejdsmappe til dine data (en almindelig mappe på din disk).</li>
+            <li>Opret dit første projekt i sidebaren – arbejde, privat eller noget midt imellem.</li>
+            <li>Tilføj opgaver og træk dem mellem kolonnerne (Backlog / Klar / I gang / Færdig).</li>
             <li>
               Får du opgaver via mail eller Teams? Kopiér emne og tekst ind i en ny opgave, og træk
               vedhæftninger hertil.

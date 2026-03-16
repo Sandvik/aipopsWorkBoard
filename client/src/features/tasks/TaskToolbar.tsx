@@ -151,7 +151,11 @@ export function TaskToolbar({
             type="button"
             className="ghost-button theme-toggle-button"
             onClick={onToggleTheme}
-            title={theme === "light" ? "Skift til mørk tilstand" : "Skift til lys tilstand"}
+            title={
+              theme === "light"
+                ? "Skift til mørkt, hvis skærmen larmer"
+                : "Skift til lyst, hvis hovedet gør"
+            }
           >
             <span aria-hidden="true">{theme === "light" ? "🌙" : "☀️"}</span>
             <span className="visually-hidden">
@@ -162,6 +166,11 @@ export function TaskToolbar({
             type="button"
             className={`ghost-button filter-chip ${filtersActive ? "filter-chip-active" : ""}`}
             onClick={onToggleFilters}
+            title={
+              filtersActive
+                ? "Filtre er tændt – sluk dem for at se virkeligheden igen"
+                : "Skru ned for støjen med et par filtre"
+            }
           >
             <span className="filter-chip-label">Filtre</span>
           </button>
@@ -170,6 +179,7 @@ export function TaskToolbar({
             className="primary-button"
             disabled={busy || !projects.length}
             onClick={onOpenNewTask}
+            title={projects.length ? "Opret en ny opgave på boardet" : "Opret et projekt før du laver opgaver"}
           >
             + Ny opgave
           </button>
@@ -204,6 +214,7 @@ export function TaskToolbar({
             type="button"
             className="ghost-button"
             onClick={onResetFilters}
+            title="Fjern alle filtre og vis hele boardet igen"
           >
             Nulstil
           </button>
@@ -227,7 +238,7 @@ export function TaskToolbar({
                 value={newTaskTitle}
                 onChange={(event) => onNewTaskTitleChange(event.target.value)}
                 className={!newTaskTitle.trim() ? "input-invalid" : ""}
-                placeholder="Hvad skal gøres? (indsæt evt. mailens emne)"
+                placeholder="Hvad skal gøres? (emnet fra mailen virker fint)"
               />
             </label>
             <label>
@@ -263,7 +274,7 @@ export function TaskToolbar({
               rows={2}
               value={newTaskDescription}
               onChange={(event) => onNewTaskDescriptionChange(event.target.value)}
-              placeholder="Kort tekst om opgaven eller kopieret fra mail."
+              placeholder="Kort tekst om opgaven – eller bare hele mailen, så tager vi den derfra."
             />
           </label>
           <div className="new-task-footer-row">
@@ -274,6 +285,7 @@ export function TaskToolbar({
                   className="ghost-button"
                   onClick={onSplitNewTaskDescription}
                   disabled={busy || aiBusy}
+                  title="Lav flere konkrete opgaver ud fra tekstmuren, du lige indsatte"
                 >
                   {aiBusy ? "Laver opgave-forslag…" : "Lav konkrete opgaver ud fra teksten"}
                 </button>
@@ -283,6 +295,7 @@ export function TaskToolbar({
                   className="ghost-button"
                   onClick={onAiSuggestNewTaskDescription}
                   disabled={busy || aiBusy}
+                  title="Få hjælp til at skrive noget, der lyder mindre som en lynnote til dig selv"
                 >
                   {aiBusy ? "Arbejder med tekst…" : aiLabel}
                 </button>
@@ -293,6 +306,7 @@ export function TaskToolbar({
                 type="button"
                 className="ghost-button"
                 onClick={onCancelNewTask}
+                title="Luk uden at oprette opgaven"
               >
                 Annuller
               </button>
@@ -300,6 +314,7 @@ export function TaskToolbar({
                 type="submit"
                 className="primary-button"
                 disabled={busy || !newTaskTitle.trim()}
+                title="Gem den nye opgave på boardet"
               >
                 Opret opgave
               </button>

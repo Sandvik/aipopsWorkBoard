@@ -70,7 +70,12 @@ export function TaskDetailsPanel({
     <aside className="task-panel">
       <div className="row between">
         <p className="eyebrow">Opgavedetaljer</p>
-        <button type="button" className="ghost-button small-button" onClick={onClose}>
+        <button
+          type="button"
+          className="ghost-button small-button"
+          onClick={onClose}
+          title="Luk detaljevisningen og gå tilbage til boardet"
+        >
           Luk
         </button>
       </div>
@@ -111,6 +116,7 @@ export function TaskDetailsPanel({
                 className="ghost-button"
                 onClick={onSplitFromDescription}
                 disabled={busy || aiBusy}
+                title="Lav flere konkrete opgaver ud fra den lange tekst i beskrivelsen"
               >
                 {aiBusy ? "Laver opgave-forslag…" : "Lav konkrete opgaver ud fra teksten"}
               </button>
@@ -120,6 +126,7 @@ export function TaskDetailsPanel({
                 className="ghost-button"
                 onClick={onAiSummarizeDescription}
                 disabled={busy || aiBusy}
+                title="Få hjælp til at rydde op i teksten og gøre den mere konkret"
               >
                 {aiBusy ? "Arbejder med tekst…" : aiLabel}
               </button>
@@ -242,6 +249,7 @@ export function TaskDetailsPanel({
                 type="button"
                 className="ghost-button danger-button"
                 onClick={() => onAttachmentDelete(attachment.id)}
+                title="Fjern denne vedhæftning fra opgaven"
               >
                 Slet
               </button>
@@ -278,6 +286,7 @@ export function TaskDetailsPanel({
           className="ghost-button danger-button"
           onClick={onDelete}
           disabled={busy}
+            title="Slet denne opgave (kan ikke fortrydes)"
         >
           Slet opgave
         </button>
@@ -287,6 +296,7 @@ export function TaskDetailsPanel({
             className="primary-button task-save-button"
             onClick={onSave}
             disabled={busy || !draft.title.trim() || !draft.projectSlug}
+              title="Gem ændringerne til opgaven"
           >
             Gem opgave
           </button>

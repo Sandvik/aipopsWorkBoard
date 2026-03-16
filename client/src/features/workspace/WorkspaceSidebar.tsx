@@ -77,8 +77,8 @@ export function WorkspaceSidebar({
                   disabled={busy}
                   title={
                     workspaceName
-                      ? "Skift til en anden arbejdsmappe"
-                      : "Vælg en arbejdsmappe for at komme i gang"
+                        ? "Skift til en anden arbejdsmappe (ny placering, ny PC eller bare oprydning)"
+                        : "Vælg en arbejdsmappe på din computer for at komme i gang"
                   }
                 >
                   {workspaceName ? "Skift mappe" : "Vælg mappe"}
@@ -88,7 +88,7 @@ export function WorkspaceSidebar({
                   className="secondary-button"
                   onClick={onRefreshData}
                   disabled={busy}
-                  title="Ved delt mappe: klik for at hente andre brugeres ændringer"
+                  title="Ved delt mappe: klik for at hente andres ændringer (og se hvad de har lavet siden sidst)"
                 >
                   Opdater
                 </button>
@@ -114,7 +114,7 @@ export function WorkspaceSidebar({
               className="secondary-button morning-brief-button"
               onClick={onShowMorningBrief}
               disabled={busy}
-              title="Få et kort overblik over dine projekter og opgaver i dag"
+                title="Få et kort morgen-overblik uden at åbne alle mails først"
             >
               ✨ Brief
             </button>
@@ -146,7 +146,7 @@ export function WorkspaceSidebar({
               ))}
               {!activeProjects.length ? (
                 <p className="muted small">
-                  Ingen aktive projekter endnu. Opret et nyt for at komme i gang.
+                  Ingen aktive projekter endnu. Start med ét – flere skal nok selv melde sig.
                 </p>
               ) : null}
 

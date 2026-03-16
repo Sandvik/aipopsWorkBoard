@@ -13,6 +13,7 @@ export function AppFooter({ onShowAbout, onShowDataHelp }: AppFooterProps) {
             type="button"
             className="app-footer-link"
             onClick={onShowAbout}
+            title="Læs lidt mere om, hvad AIPOPS Workboard er (og ikke er)"
           >
             Om AIPOPS Workboard
           </button>
@@ -20,6 +21,7 @@ export function AppFooter({ onShowAbout, onShowDataHelp }: AppFooterProps) {
             type="button"
             className="app-footer-link"
             onClick={onShowDataHelp}
+            title="Se hvordan dine data gemmes lokalt, og hvordan du flytter dem til en ny PC"
           >
             Data og flytning
           </button>

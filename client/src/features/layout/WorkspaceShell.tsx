@@ -271,7 +271,10 @@ export function WorkspaceShell({
                   {visibleTasks.length === 0 ? (
                     <div className="board-empty">
                       <p>Ingen opgaver endnu.</p>
-                      <p className="muted small">Brug &quot;Ny opgave&quot; for at tilføje den første.</p>
+                      <p className="muted small">
+                        Nyd det et øjeblik – eller klik &quot;Ny opgave&quot; og begynd at være ærlig
+                        om din indbakke.
+                      </p>
                     </div>
                   ) : null}
                   <TaskBoard

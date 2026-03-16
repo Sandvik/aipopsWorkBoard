@@ -67,6 +67,7 @@ export function AiSettingsModal({
               className="ghost-button danger-button"
               onClick={onRemove}
               disabled={busy}
+            title="Fjern AI-nøglen, så denne arbejdsmappe igen kører helt uden AI"
             >
               Fjern nøgle
             </button>
@@ -76,6 +77,7 @@ export function AiSettingsModal({
             className="secondary-button"
             onClick={onSkip}
             disabled={busy}
+            title={initialApiKey ? "Luk uden at ændre noget" : "Spring AI-opsætning over for nu"}
           >
             {initialApiKey ? "Luk" : "Spring over"}
           </button>
@@ -84,6 +86,11 @@ export function AiSettingsModal({
             className="primary-button"
             onClick={() => onSave(value.trim() || null)}
             disabled={busy}
+            title={
+              initialApiKey
+                ? "Opdater AI-nøglen for denne arbejdsmappe"
+                : "Gem din AI-nøgle, så AIPOPS kan hjælpe med tekster"
+            }
           >
             {initialApiKey ? "Opdater nøgle" : "Gem nøgle"}
           </button>
