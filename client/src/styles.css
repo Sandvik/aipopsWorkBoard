@@ -1427,6 +1427,16 @@ body.theme-dark .toolbar-stat-chip-danger {
   transform: translateX(-50%);
 }
 
+.empty-main-card h2 {
+  margin-top: 0;
+  font-size: 1.4rem;
+  color: #111827;
+}
+
+body.theme-dark .empty-main-card h2 {
+  color: #e5e7eb;
+}
+
 .empty-main-steps {
   margin: 0;
   padding-left: 1.3rem;

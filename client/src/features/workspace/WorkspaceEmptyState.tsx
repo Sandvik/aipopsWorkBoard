@@ -63,9 +63,9 @@ export function WorkspaceEmptyState({
         </div>
 
         <div className="empty-main-card">
-          <h2>Få et simpelt board til dine opgaver</h2>
+          <h2>Få ét overblik over dine opgaver</h2>
           <p className="muted">
-            AIPOPS Workboard samler dine projekter og opgaver i ét simpelt board.
+            AIPOPS Workboard er et simpelt board til dine projekter og opgaver.
             <br />
             Alt gemmes som filer i en mappe på din egen computer – ingen servere, ingen login.
           </p>
