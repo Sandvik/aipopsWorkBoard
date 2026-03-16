@@ -4,7 +4,12 @@
 import { useEffect, useRef, useState } from "react";
 import type { ProjectRecord, TaskRecord, TaskStatus } from "./types";
 import { loadConfig, pickWorkspaceDirectory, saveConfig } from "./infrastructure/storage";
-import { summarizeDescription, suggestTaskDescription } from "./infrastructure/aiClient";
+import {
+  generateMorningBrief,
+  optimizeTaskTitle,
+  summarizeDescription,
+  suggestTaskDescription,
+} from "./infrastructure/aiClient";
 import { TaskBoard } from "./features/tasks/TaskBoard";
 import { TaskDetailsPanel } from "./features/tasks/TaskDetailsPanel";
 import { EMPTY_DRAFT, PanelDraft, isOverdue } from "./features/tasks/taskUi";
@@ -25,6 +30,7 @@ import { AppFooter } from "./features/layout/AppFooter";
 import { AboutModal } from "./features/layout/AboutModal";
 import { useAsyncFeedback } from "./features/layout/useAsyncFeedback";
 import { AiSettingsModal } from "./features/layout/AiSettingsModal";
+import { MorningBriefModal } from "./features/layout/MorningBriefModal";
 
 type WorkspaceHandle = FileSystemDirectoryHandle | null;
 
@@ -65,6 +71,9 @@ export default function App() {
   const [isMobileLike, setIsMobileLike] = useState(false);
   const [aiApiKey, setAiApiKey] = useState<string | null>(null);
   const [showAiSetup, setShowAiSetup] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [morningBrief, setMorningBrief] = useState("");
+  const [showMorningBrief, setShowMorningBrief] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
     try {
@@ -385,6 +394,71 @@ export default function App() {
           workspaceProgressTooltip={workspaceProgressTooltip}
           projectTooltips={projectTooltips}
           projectTaskCounts={projectTaskCounts}
+          onShowMorningBrief={() => {
+            if (!aiApiKey) {
+              setShowAiSetup(true);
+              return;
+            }
+            setMorningBrief("Genererer brief…");
+            setShowMorningBrief(true);
+            const lines: string[] = [];
+            const today = new Date();
+            const todayLabel = today.toLocaleDateString("da-DK", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            });
+            lines.push(`Dato: ${todayLabel}`);
+            lines.push("");
+            activeProjects.forEach((project) => {
+              const tasks = tasksByProject[project.slug] ?? [];
+              if (!tasks.length) return;
+              const backlog = tasks.filter((task) => task.status === "backlog").length;
+              const todo = tasks.filter((task) => task.status === "todo").length;
+              const doing = tasks.filter((task) => task.status === "doing").length;
+              const done = tasks.filter((task) => task.status === "done").length;
+              const overdue = tasks.filter((task) => isOverdue(task.deadline)).length;
+              const highPriority = tasks.filter(
+                (task) => task.priority === "High" || task.priority === "Critical",
+              ).length;
+              lines.push(
+                `Projekt: ${project.name} – Opgaver i alt: ${tasks.length}, Backlog: ${backlog}, Klar: ${todo}, I gang: ${doing}, Færdige: ${done}, Forsinkede: ${overdue}, Høj prioritet: ${highPriority}`,
+              );
+              const importantTasks = tasks
+                .filter((task) => isOverdue(task.deadline) || task.priority === "High" || task.priority === "Critical" || task.status === "doing")
+                .slice(0, 3);
+              importantTasks.forEach((task) => {
+                const statusLabel = task.status === "backlog"
+                  ? "Backlog"
+                  : task.status === "todo"
+                    ? "Klar"
+                    : task.status === "doing"
+                      ? "I gang"
+                      : "Færdig";
+                const deadlineText = task.deadline
+                  ? `, frist: ${new Date(task.deadline).toLocaleDateString("da-DK")}`
+                  : "";
+                lines.push(`- [${statusLabel}] ${task.title}${deadlineText}`);
+              });
+              lines.push("");
+            });
+            const context = lines.join("\n");
+
+            void (async () => {
+              setAiBusy(true);
+              try {
+                await runAction(async () => {
+                  const brief = await generateMorningBrief({
+                    apiKey: aiApiKey,
+                    context,
+                  });
+                  setMorningBrief(brief);
+                }, "Morgenbrief genereret.");
+              } finally {
+                setAiBusy(false);
+              }
+            })();
+          }}
           onPickWorkspace={() => void handlePickWorkspace()}
           onRefreshData={() => void handleRefreshData()}
           onCreateProject={() => setShowNewProjectModal(true)}
@@ -428,6 +502,7 @@ export default function App() {
                 onNewTaskProjectSlugChange={(value) => setNewTaskProjectSlug(value)}
                 newTaskDescription={newTaskDescription}
                 onNewTaskDescriptionChange={(value) => setNewTaskDescription(value)}
+                aiBusy={aiBusy}
                 onAiSuggestNewTaskDescription={() => {
                   if (!aiApiKey) {
                     setShowAiSetup(true);
@@ -437,14 +512,21 @@ export default function App() {
                     setMessage("Skriv mindst en titel eller lidt tekst først.");
                     return;
                   }
-                  void runAction(async () => {
-                    const suggestion = await suggestTaskDescription({
-                      apiKey: aiApiKey,
-                      title: newTaskTitle,
-                      currentDescription: newTaskDescription,
-                    });
-                    setNewTaskDescription(suggestion);
-                  });
+                  void (async () => {
+                    setAiBusy(true);
+                    try {
+                      await runAction(async () => {
+                        const suggestion = await suggestTaskDescription({
+                          apiKey: aiApiKey,
+                          title: newTaskTitle,
+                          currentDescription: newTaskDescription,
+                        });
+                        setNewTaskDescription(suggestion);
+                      });
+                    } finally {
+                      setAiBusy(false);
+                    }
+                  })();
                 }}
                 onOpenNewTask={() => {
                   setIsCreatingTask(true);
@@ -510,23 +592,51 @@ export default function App() {
                 setShowAiSetup(true);
                 return;
               }
-              void runAction(async () => {
-                const text = panelDraft.description.trim() || panelDraft.title.trim();
-                if (!text) {
-                  setMessage("Skriv mindst en titel eller lidt tekst først.");
-                  return;
+              void (async () => {
+                setAiBusy(true);
+                try {
+                  await runAction(async () => {
+                    const text = panelDraft.description.trim() || panelDraft.title.trim();
+                    if (!text) {
+                      setMessage("Skriv mindst en titel eller lidt tekst først.");
+                      return;
+                    }
+                    const result = await summarizeDescription({
+                      apiKey: aiApiKey,
+                      text,
+                    });
+                    // Opdater beskrivelsen først
+                    let nextDraft: PanelDraft = {
+                      ...panelDraft,
+                      description: result.shorter,
+                    };
+                    // Forsøg også at optimere titlen ud fra den nye beskrivelse
+                    try {
+                      const optimizedTitle = await optimizeTaskTitle({
+                        apiKey: aiApiKey,
+                        title: nextDraft.title || selectedTask?.title || "",
+                        description: nextDraft.description,
+                        deadlineLabel: nextDraft.deadline || undefined,
+                      });
+                      if (optimizedTitle && optimizedTitle.trim()) {
+                        nextDraft = {
+                          ...nextDraft,
+                          title: optimizedTitle.trim(),
+                        };
+                      }
+                    } catch (optError) {
+                      // eslint-disable-next-line no-console
+                      console.warn("Kunne ikke optimere titel", optError);
+                    }
+                    setPanelDraft(nextDraft);
+                  });
+                } finally {
+                  setAiBusy(false);
                 }
-                const result = await summarizeDescription({
-                  apiKey: aiApiKey,
-                  text,
-                });
-                setPanelDraft((current) => ({
-                  ...current,
-                  description: result.shorter,
-                }));
-              });
+              })();
             }}
             onOpenAiSettings={() => setShowAiSetup(true)}
+            aiBusy={aiBusy}
             onClose={() => setSelectedTaskId("")}
             onDraftChange={(draft) => setPanelDraft(draft)}
             onCommentTextChange={(value) => setCommentText(value)}
@@ -563,6 +673,12 @@ export default function App() {
           onConfirm={confirmState.onConfirm}
         />
       ) : null}
+
+      <MorningBriefModal
+        open={showMorningBrief}
+        brief={morningBrief}
+        onClose={() => setShowMorningBrief(false)}
+      />
 
       <AiSettingsModal
         open={showAiSetup}

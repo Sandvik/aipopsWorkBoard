@@ -6,9 +6,11 @@ export type AiProvider = "openai";
 export type AiClientOptions = {
   apiKey: string;
   provider?: AiProvider;
+  model?: string;
 };
 
 async function callOpenAiChat(opts: AiClientOptions, messages: { role: "system" | "user"; content: string }[]) {
+  const model = opts.model || "gpt-4.1";
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -16,10 +18,10 @@ async function callOpenAiChat(opts: AiClientOptions, messages: { role: "system" 
       Authorization: `Bearer ${opts.apiKey}`,
     },
     body: JSON.stringify({
-      model: "gpt-4.1-mini",
+      model,
       messages,
       temperature: 0.4,
-      max_tokens: 120,
+      max_tokens: 400,
     }),
   });
 
@@ -36,6 +38,9 @@ async function callOpenAiChat(opts: AiClientOptions, messages: { role: "system" 
   if (!content) {
     throw new Error("AI-svaret var tomt.");
   }
+  // Simpel debug-log – kan slås fra igen senere.
+  // eslint-disable-next-line no-console
+  console.log("[AI response]", { model, content });
   return content;
 }
 
@@ -61,7 +66,7 @@ export async function suggestTaskTitle(
     {
       role: "system",
       content:
-        "Du hjælper med korte, præcise opgavetitler til et enkelt, roligt kanban-board. Svar altid kort og på dansk.",
+        "Du hjælper med præcise opgavetitler til et enkelt, roligt kanban-board. Svar altid kort og på dansk.",
     },
     { role: "user", content },
   ]);
@@ -86,7 +91,7 @@ export async function summarizeDescription(
     {
       role: "user",
       content:
-        "Gør denne tekst kortere og mere klar. Svar kun med den nye tekst, uden forklaring eller punktopstilling:\n\n" +
+        "Gør denne tekst mere klar. Svar kun med den nye tekst, uden forklaring eller punktopstilling:\n\n" +
         text,
     },
   ]);
@@ -110,16 +115,17 @@ export async function suggestTaskDescription(
 
   let baseInstruction: string;
   if (!current) {
-    // Ingen beskrivelse endnu – skriv en kort, rolig beskrivelse ud fra titlen.
-    baseInstruction = "Skriv en kort opgavebeskrivelse ud fra titlen.";
+    // Ingen beskrivelse endnu – skriv en konkret, forklarende tekst ud fra titlen.
+    baseInstruction =
+      "Skriv en konkret opgavebeskrivelse ud fra titlen. Skriv mindst én hel sætning (helst 2‑3), hvor du uddyber hvad der præcist skal gøres, og hvorfor, så det er tydeligere end bare titlen. Du MÅ IKKE bare gentage titlen ordret; tilføj altid ekstra detaljer.";
   } else if (current.length < 80) {
-    // Meget kort beskrivelse – gør den lidt mere fyldig og forklarende.
+    // Meget kort beskrivelse – gør den tydeligt mere fyldig og konkret.
     baseInstruction =
-      "Gør denne opgavebeskrivelse lidt mere fyldig og forklarende, men stadig relativt kort og klar.";
+      "Gør denne opgavebeskrivelse tydeligt mere fyldig og konkret. Skriv 1‑3 korte sætninger, der forklarer hvad der præcist skal gøres, og hvad der er vigtigt at huske.";
   } else {
-    // Længere tekst – fokusér på at gøre den lidt kortere og tydeligere.
+    // Længere tekst – fokusér på at gøre den kortere, mere fokuseret og lettere at skimme.
     baseInstruction =
-      "Forbedr denne opgavebeskrivelse, så den bliver lidt kortere og klarere.";
+      "Forbedr denne opgavebeskrivelse, så den bliver bedre, mere fokuseret og lettere at skimme, men uden at fjerne vigtige detaljer.";
   }
 
   const content =
@@ -131,9 +137,82 @@ export async function suggestTaskDescription(
     {
       role: "system",
       content:
-        "Du hjælper med korte, klare opgavebeskrivelser til et kanban-board. Svar altid på dansk og undgå marketing-sprog.",
+        "Du hjælper med klare, konkrete opgavebeskrivelser til et kanban-board. Du må gerne skrive 1‑3 korte sætninger, der gør det tydeligt hvad der skal gøres, men undgå både salgssprog og unødigt fyld. Svar altid på dansk.",
     },
     { role: "user", content },
+  ]);
+
+  const raw = result.trim();
+
+  // Hvis svaret er (næsten) det samme som titlen, så tilføj en ekstra,
+  // generisk forklarende sætning, så beskrivelsen altid giver mere kontekst.
+  if (title && raw) {
+    const normalize = (value: string) => value.toLowerCase().replace(/\s+/g, " ").trim();
+    const nTitle = normalize(title);
+    const nRaw = normalize(raw);
+    if (nRaw === nTitle || nRaw.startsWith(nTitle)) {
+      return `${title}. Skriv kort hvad der konkret skal gøres, hvad du vil nå i dette arbejde, og hvad der er vigtigt at have med.`;
+    }
+  }
+
+  return raw || current || title || "";
+}
+
+export async function optimizeTaskTitle(
+  opts: AiClientOptions & { title: string; description?: string; deadlineLabel?: string },
+): Promise<string> {
+  const title = opts.title.trim();
+  const description = opts.description?.trim();
+  const deadlineLabel = opts.deadlineLabel?.trim();
+
+  const parts: string[] = [`Nuværende titel:\n${title}`];
+  if (description) {
+    parts.push(`Beskrivelse:\n${description}`);
+  }
+  if (deadlineLabel) {
+    parts.push(`Frist (kan nævnes kort i titlen):\n${deadlineLabel}`);
+  }
+
+  const userContent =
+    "Lav en kort, præcis opgavetitel til et kanban-board ud fra nedenstående. " +
+    "Titlen skal være let at skimme, gerne 3‑8 ord. " +
+    "Hvis der er en frist, og den ikke allerede er nævnt i titlen, må du gerne tilføje en helt kort dato til sidst i parentes, fx '(12.03)'. " +
+    "Du MÅ ikke bare gentage den nuværende titel – forbedr den altid en smule.\n\n" +
+    parts.join("\n\n");
+
+  const result = await callOpenAiChat(opts, [
+    {
+      role: "system",
+      content:
+        "Du hjælper med korte, præcise opgavetitler til et kanban-board. Titlerne skal lyde som simple emne‑linjer, ikke marketing. Svar altid kun med selve titlen på dansk.",
+    },
+    { role: "user", content: userContent },
+  ]);
+
+  // Brug kun første linje som ny titel.
+  const raw = result.split("\n")[0]?.trim() || "";
+  return raw || title || "";
+}
+
+export async function generateMorningBrief(
+  opts: AiClientOptions & { context: string },
+): Promise<string> {
+  const { context, ...rest } = opts;
+
+  const result = await callOpenAiChat(rest, [
+    {
+      role: "system",
+      content:
+        "Du er en assistent, der hjælper en person med at få overblik over sine projekter og opgaver på et kanban-board. Du skriver korte briefs på dansk.",
+    },
+    {
+      role: "user",
+      content:
+        "Ud fra følgende overblik over projekter og opgaver skal du skrive en kort brief til brugeren. " +
+        "Fokusér på: hvor der er pres (forsinkede eller høj prioritet), hvad der er oplagt at starte med i dag, og eventuelle risici. " +
+        "Skriv 3‑7 punktopstillinger eller korte afsnit. Vær konkret men rolig i tonen.\n\n" +
+        context,
+    },
   ]);
 
   return result.trim();

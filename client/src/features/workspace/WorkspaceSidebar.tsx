@@ -19,6 +19,7 @@ type WorkspaceSidebarProps = {
   workspaceProgressTooltip: string;
   projectTooltips: Record<string, string>;
   projectTaskCounts: Record<string, number>;
+  onShowMorningBrief: () => void;
   onPickWorkspace: () => void;
   onRefreshData: () => void;
   onCreateProject: () => void;
@@ -38,6 +39,7 @@ export function WorkspaceSidebar({
   workspaceProgressTooltip,
   projectTooltips,
   projectTaskCounts,
+  onShowMorningBrief,
   onPickWorkspace,
   onRefreshData,
   onCreateProject,
@@ -63,18 +65,8 @@ export function WorkspaceSidebar({
                 <p className="workspace-name">
                   {workspaceName || "Ingen mappe valgt"}
                 </p>
-              </div>
-              <p className="workspace-card-copy muted small">
-                Alt på boardet ligger i denne mappe.
-              </p>
-              {workspaceProgressLabel ? (
-                <p
-                  className="workspace-progress-badge small"
-                  title={workspaceProgressTooltip || undefined}
-                >
-                  {workspaceProgressLabel}
-                </p>
-              ) : null}
+              </div>         
+             
             </div>
             <div className="workspace-card-actions">
               <div className="workspace-actions">
@@ -101,14 +93,12 @@ export function WorkspaceSidebar({
                   Opdater
                 </button>
               </div>
-           
             </div>
           </div>
 
           <div className="workspace-card projects-card">
             <div className="projects-head-main">
               <p className="eyebrow">Dine projekter</p>
-          
             </div>
             <button
               type="button"
@@ -118,6 +108,15 @@ export function WorkspaceSidebar({
               title="Opret et nyt projekt i den valgte arbejdsmappe"
             >
               + Nyt projekt
+            </button>
+            <button
+              type="button"
+              className="secondary-button morning-brief-button"
+              onClick={onShowMorningBrief}
+              disabled={busy}
+              title="Få et kort overblik over dine projekter og opgaver i dag"
+            >
+              ✨ Brief
             </button>
 
             <div className="project-list">

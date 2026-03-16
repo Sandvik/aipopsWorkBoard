@@ -37,6 +37,7 @@ type TaskDetailsPanelProps = {
   onAttachmentDelete: (id: string) => void;
   // AI-hjælp (kaldes fra App, viser modal hvis der mangler nøgle).
   onAiSummarizeDescription: () => void;
+  aiBusy: boolean;
   onOpenAiSettings: () => void;
 };
 
@@ -57,6 +58,7 @@ export function TaskDetailsPanel({
   onAttachmentDelete,
   onAiSummarizeDescription,
   onOpenAiSettings,
+  aiBusy,
 }: TaskDetailsPanelProps) {
   return (
     <aside className="task-panel">
@@ -101,9 +103,9 @@ export function TaskDetailsPanel({
               type="button"
               className="ghost-button"
               onClick={onAiSummarizeDescription}
-              disabled={busy}
+              disabled={busy || aiBusy}
             >
-              ✨ Hjælp til beskrivelse
+              {aiBusy ? "Arbejder med beskrivelse…" : "✨ Hjælp til beskrivelse"}
             </button>
           </div>
         </div>
