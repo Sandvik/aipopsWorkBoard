@@ -42,6 +42,8 @@ type TaskToolbarProps = {
   onAiSuggestNewTaskDescription: () => void;
   aiBusy: boolean;
   aiLabel: string;
+  canSplitNewTaskDescription: boolean;
+  onSplitNewTaskDescription: () => void;
   onOpenNewTask: () => void;
   onCancelNewTask: () => void;
   onSubmitNewTask: (event: FormEvent) => void;
@@ -83,6 +85,8 @@ export function TaskToolbar({
   onAiSuggestNewTaskDescription,
   aiBusy,
   aiLabel,
+  canSplitNewTaskDescription,
+  onSplitNewTaskDescription,
   onOpenNewTask,
   onCancelNewTask,
   onSubmitNewTask,
@@ -264,14 +268,25 @@ export function TaskToolbar({
           </label>
           <div className="new-task-footer-row">
             <div className="ai-inline-actions">
-              <button
-                type="button"
-                className="ghost-button"
-                onClick={onAiSuggestNewTaskDescription}
-                disabled={busy || aiBusy}
-              >
-                {aiBusy ? "Arbejder med tekst…" : aiLabel}
-              </button>
+              {canSplitNewTaskDescription ? (
+                <button
+                  type="button"
+                  className="ghost-button"
+                  onClick={onSplitNewTaskDescription}
+                  disabled={busy || aiBusy}
+                >
+                  {aiBusy ? "Laver opgave-forslag…" : "Lav konkrete opgaver ud fra teksten"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="ghost-button"
+                  onClick={onAiSuggestNewTaskDescription}
+                  disabled={busy || aiBusy}
+                >
+                  {aiBusy ? "Arbejder med tekst…" : aiLabel}
+                </button>
+              )}
             </div>
             <div className="new-task-actions">
               <button

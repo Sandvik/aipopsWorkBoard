@@ -40,6 +40,8 @@ type TaskDetailsPanelProps = {
   aiBusy: boolean;
   aiLabel: string;
   onOpenAiSettings: () => void;
+  canSplitFromDescription: boolean;
+  onSplitFromDescription: () => void;
 };
 
 export function TaskDetailsPanel({
@@ -61,6 +63,8 @@ export function TaskDetailsPanel({
   aiLabel,
   onOpenAiSettings,
   aiBusy,
+  canSplitFromDescription,
+  onSplitFromDescription,
 }: TaskDetailsPanelProps) {
   return (
     <aside className="task-panel">
@@ -101,14 +105,25 @@ export function TaskDetailsPanel({
             />
           </label>
           <div className="ai-inline-actions">
-            <button
-              type="button"
-              className="ghost-button"
-              onClick={onAiSummarizeDescription}
-              disabled={busy || aiBusy}
-            >
-              {aiBusy ? "Arbejder med tekst…" : aiLabel}
-            </button>
+            {canSplitFromDescription ? (
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={onSplitFromDescription}
+                disabled={busy || aiBusy}
+              >
+                {aiBusy ? "Laver opgave-forslag…" : "Lav konkrete opgaver ud fra teksten"}
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={onAiSummarizeDescription}
+                disabled={busy || aiBusy}
+              >
+                {aiBusy ? "Arbejder med tekst…" : aiLabel}
+              </button>
+            )}
           </div>
         </div>
       </div>

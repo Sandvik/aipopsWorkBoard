@@ -3,16 +3,19 @@
 // ligger i feature-hooks (tasks, projekter, workspace, async-feedback).
 import { useEffect, useRef, useState } from "react";
 import type { ProjectRecord, TaskRecord, TaskStatus } from "./types";
-import { loadConfig, pickWorkspaceDirectory, saveConfig } from "./infrastructure/storage";
+import { loadConfig, pickWorkspaceDirectory, saveConfig, createTask, updateTask } from "./infrastructure/storage";
 import {
   generateMorningBrief,
   optimizeTaskTitle,
   summarizeDescription,
   summarizeDescriptionFromMessage,
   suggestTaskDescription,
+  splitIntoTasks,
+  type SplitTaskSuggestion,
 } from "./infrastructure/aiClient";
 import { TaskBoard } from "./features/tasks/TaskBoard";
 import { TaskDetailsPanel } from "./features/tasks/TaskDetailsPanel";
+import { SplitTasksModal } from "./features/tasks/SplitTasksModal";
 import { EMPTY_DRAFT, PanelDraft, isOverdue } from "./features/tasks/taskUi";
 import { TaskToolbar } from "./features/tasks/TaskToolbar";
 import { useTaskFilters } from "./features/tasks/useTaskFilters";
@@ -75,6 +78,11 @@ export default function App() {
   const [aiBusy, setAiBusy] = useState(false);
   const [morningBrief, setMorningBrief] = useState("");
   const [showMorningBrief, setShowMorningBrief] = useState(false);
+  const [splitSuggestions, setSplitSuggestions] = useState<SplitTaskSuggestion[]>([]);
+  const [showSplitModal, setShowSplitModal] = useState(false);
+  const [splitProjectSlug, setSplitProjectSlug] = useState<string>("");
+  const [canSplitCurrentDescription, setCanSplitCurrentDescription] = useState(false);
+  const [canSplitNewTaskDescription, setCanSplitNewTaskDescription] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
     try {
@@ -345,6 +353,12 @@ export default function App() {
     return () => window.clearTimeout(timerId);
   }, [taskJustSaved]);
 
+  // Når valgt opgave skifter, skal "lav konkrete opgaver"-linket nulstilles
+  // for detaljepanelet, så brugeren først rydder teksten op igen.
+  useEffect(() => {
+    setCanSplitCurrentDescription(false);
+  }, [selectedTaskId]);
+
   // Global tastatur-genveje:
   // - Escape: lukker About-modal eller detaljer-panel.
   // - Ctrl+Enter: gemmer opgave, hvis formularen er gyldig.
@@ -365,6 +379,82 @@ export default function App() {
     window.addEventListener("keydown", handleKeydown);
     return () => window.removeEventListener("keydown", handleKeydown);
   }, [selectedTask, busy, panelDraft.title, panelDraft.projectSlug, showAbout]);
+
+  function handleSplitFromDescription() {
+    if (!aiApiKey) {
+      setShowAiSetup(true);
+      return;
+    }
+
+    const text = panelDraft.description.trim();
+    if (!text) {
+      setMessage("Tilføj lidt tekst i beskrivelsen først.");
+      return;
+    }
+
+    void (async () => {
+      setAiBusy(true);
+      try {
+        await runAction(async () => {
+          const suggestions = await splitIntoTasks({
+            apiKey: aiApiKey,
+            text,
+          });
+
+          if (!suggestions.length) {
+            setMessage(
+              "Jeg kunne ikke finde tydelige opgaver i teksten. Prøv at gøre teksten lidt kortere.",
+            );
+            return;
+          }
+
+          setSplitProjectSlug(panelDraft.projectSlug || selectedTask?.projectSlug || selectedProjectSlug);
+          setSplitSuggestions(suggestions);
+          setShowSplitModal(true);
+        });
+      } finally {
+        setAiBusy(false);
+      }
+    })();
+  }
+
+  function handleSplitFromNewTaskDescription() {
+    if (!aiApiKey) {
+      setShowAiSetup(true);
+      return;
+    }
+
+    const text = newTaskDescription.trim();
+    if (!text) {
+      setMessage("Tilføj lidt tekst i beskrivelsen først.");
+      return;
+    }
+
+    void (async () => {
+      setAiBusy(true);
+      try {
+        await runAction(async () => {
+          const suggestions = await splitIntoTasks({
+            apiKey: aiApiKey,
+            text,
+          });
+
+          if (!suggestions.length) {
+            setMessage(
+              "Jeg kunne ikke finde tydelige opgaver i teksten. Prøv at gøre teksten lidt kortere.",
+            );
+            return;
+          }
+
+          setSplitProjectSlug(newTaskProjectSlug || selectedProjectSlug);
+          setSplitSuggestions(suggestions);
+          setShowSplitModal(true);
+        });
+      } finally {
+        setAiBusy(false);
+      }
+    })();
+  }
 
   return (
     <div className="app-root">
@@ -509,6 +599,8 @@ export default function App() {
                     ? "✨ Ryd op fra mail/Teams"
                     : "✨ Hjælp til beskrivelse"
                 }
+                canSplitNewTaskDescription={canSplitNewTaskDescription}
+                onSplitNewTaskDescription={handleSplitFromNewTaskDescription}
                 onAiSuggestNewTaskDescription={() => {
                   if (!aiApiKey) {
                     setShowAiSetup(true);
@@ -542,6 +634,7 @@ export default function App() {
                           });
                           setNewTaskDescription(suggestion);
                         }
+                        setCanSplitNewTaskDescription(true);
                       });
                     } finally {
                       setAiBusy(false);
@@ -551,6 +644,7 @@ export default function App() {
                 onOpenNewTask={() => {
                   setIsCreatingTask(true);
                   setNewTaskProjectSlug(selectedProjectSlug || projects[0]?.slug || "");
+                  setCanSplitNewTaskDescription(false);
                 }}
                 onCancelNewTask={() => {
                   setIsCreatingTask(false);
@@ -558,6 +652,7 @@ export default function App() {
                   setNewTaskAssignee("");
                   setNewTaskProjectSlug("");
                   setNewTaskDescription("");
+                  setCanSplitNewTaskDescription(false);
                 }}
                 onSubmitNewTask={handleCreateTask}
               />
@@ -660,6 +755,7 @@ export default function App() {
                       console.warn("Kunne ikke optimere titel", optError);
                     }
                     setPanelDraft(nextDraft);
+                    setCanSplitCurrentDescription(true);
                   });
                 } finally {
                   setAiBusy(false);
@@ -673,6 +769,8 @@ export default function App() {
                 : "✨ Hjælp til beskrivelse"
             }
             aiBusy={aiBusy}
+            canSplitFromDescription={canSplitCurrentDescription}
+            onSplitFromDescription={handleSplitFromDescription}
             onClose={() => setSelectedTaskId("")}
             onDraftChange={(draft) => setPanelDraft(draft)}
             onCommentTextChange={(value) => setCommentText(value)}
@@ -709,6 +807,57 @@ export default function App() {
           onConfirm={confirmState.onConfirm}
         />
       ) : null}
+
+      <SplitTasksModal
+        open={showSplitModal}
+        suggestions={splitSuggestions}
+        canMarkOriginalDone={!!selectedTask}
+        onCancel={() => setShowSplitModal(false)}
+        onConfirm={(selected, { markOriginalDone }) => {
+          void (async () => {
+            if (!workspace || !splitProjectSlug) return;
+            setShowSplitModal(false);
+            await runAction(async () => {
+              const handle = await requireWorkspace();
+              const createdCount = selected.length;
+              for (const item of selected) {
+                await createTask(handle, splitProjectSlug, {
+                  title: item.title,
+                  assignee: "",
+                  description: item.description,
+                });
+              }
+              if (markOriginalDone && selectedTask && selectedTask.projectSlug === splitProjectSlug) {
+                await updateTask(handle, splitProjectSlug, selectedTask.id, {
+                  status: "done",
+                } as Partial<TaskRecord>);
+              }
+
+              // Hvis vi kom fra "Ny opgave"-formularen (ingen valgt opgave),
+              // luk og ryd kladden efter split, så brugeren ikke sidder tilbage
+              // med en gammel mail-tekst.
+              if (!selectedTask) {
+                setIsCreatingTask(false);
+                setNewTaskTitle("");
+                setNewTaskAssignee("");
+                setNewTaskProjectSlug("");
+                setNewTaskDescription("");
+              }
+
+              await loadAllData(handle, splitProjectSlug, selectedTask?.id ?? null);
+              if (markOriginalDone && selectedTask) {
+                setMessage(
+                  `${createdCount} opgave${createdCount === 1 ? "" : "r"} oprettet, og den oprindelige opgave er markeret som færdig.`,
+                );
+              } else {
+                setMessage(
+                  `${createdCount} opgave${createdCount === 1 ? "" : "r"} oprettet ud fra teksten.`,
+                );
+              }
+            });
+          })();
+        }}
+      />
 
       <MorningBriefModal
         open={showMorningBrief}

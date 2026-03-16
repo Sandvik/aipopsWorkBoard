@@ -1523,6 +1523,50 @@ body.theme-dark .empty-main-steps li::marker {
   margin-top: 0.6rem;
 }
 
+.split-tasks-modal {
+  max-width: 32rem;
+}
+
+.split-tasks-list {
+  margin-top: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.split-task-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+
+.split-task-item input[type="checkbox"] {
+  margin-top: 0.2rem;
+}
+
+.split-task-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.split-task-description {
+  margin: 0.1rem 0 0;
+}
+
+.split-task-original-option {
+  margin-top: 0.75rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: flex-start;
+  gap: 0.45rem;
+  font-size: 0.86rem;
+}
+
+.split-task-original-option input[type="checkbox"] {
+  margin-top: 0.15rem;
+}
+
 .ai-settings-modal {
   max-width: 32rem;
 }

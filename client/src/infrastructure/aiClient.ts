@@ -9,6 +9,11 @@ export type AiClientOptions = {
   model?: string;
 };
 
+export type SplitTaskSuggestion = {
+  title: string;
+  description: string;
+};
+
 async function callOpenAiChat(opts: AiClientOptions, messages: { role: "system" | "user"; content: string }[]) {
   const model = opts.model || "gpt-4.1";
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -243,4 +248,47 @@ export async function generateMorningBrief(
   return result.trim();
 }
 
+export async function splitIntoTasks(
+  opts: AiClientOptions & { text: string },
+): Promise<SplitTaskSuggestion[]> {
+  const text = opts.text.trim();
+  if (!text) return [];
+
+  const result = await callOpenAiChat(opts, [
+    {
+      role: "system",
+      content:
+        "Du hjælper med at udtrække konkrete opgaver fra en lang tekst (ofte en mail eller chat). " +
+        "Du skal kun finde ting der kræver handling, ikke generelle kommentarer. Svar på dansk.",
+    },
+    {
+      role: "user",
+      content:
+        "Ud fra denne tekst skal du foreslå 3–8 konkrete opgaver. For hver opgave skal du give:\n" +
+        "- en kort titel (max ca. 8 ord)\n" +
+        "- en kort beskrivelse (1–3 sætninger), der forklarer hvad der skal gøres og hvad der er vigtigt at huske.\n\n" +
+        "Returnér svar som ren JSON-liste, uden ekstra tekst, i formatet:\n" +
+        '[{ \"title\": \"...\", \"description\": \"...\" }, ...]\n\n' +
+        "Tekst:\n\n" +
+        text,
+    },
+  ]);
+
+  const raw = result.trim();
+  try {
+    const parsed = JSON.parse(raw) as SplitTaskSuggestion[];
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .filter((item) => item && item.title && item.description)
+      .map((item) => ({
+        title: item.title.trim(),
+        description: item.description.trim(),
+      }));
+  } catch {
+    // eslint-disable-next-line no-console
+    console.warn("Kunne ikke parse splitIntoTasks-svar som JSON", raw);
+    return [];
+  }
+}
 
