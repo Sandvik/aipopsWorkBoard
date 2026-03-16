@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type AiSettingsModalProps = {
   open: boolean;
@@ -6,10 +6,24 @@ type AiSettingsModalProps = {
   initialApiKey: string | null;
   onSave: (apiKey: string | null) => void;
   onSkip: () => void;
+  onRemove?: () => void;
 };
 
-export function AiSettingsModal({ open, busy, initialApiKey, onSave, onSkip }: AiSettingsModalProps) {
+export function AiSettingsModal({
+  open,
+  busy,
+  initialApiKey,
+  onSave,
+  onSkip,
+  onRemove,
+}: AiSettingsModalProps) {
   const [value, setValue] = useState(initialApiKey ?? "");
+
+  useEffect(() => {
+    if (open) {
+      setValue(initialApiKey ?? "");
+    }
+  }, [open, initialApiKey]);
 
   if (!open) return null;
 
@@ -22,6 +36,12 @@ export function AiSettingsModal({ open, busy, initialApiKey, onSave, onSkip }: A
           API-nøgle her. Nøglen gemmes kun som en fil i din arbejdsmappe og bruges kun, når du selv
           trykker på en AI-knap.
         </p>
+        {initialApiKey ? (
+          <p className="muted small">
+            Der er allerede sat en AI-nøgle op for denne arbejdsmappe. Du kan ændre den herunder eller
+            fjerne den helt.
+          </p>
+        ) : null}
         <label>
           <span className="field-label">Din OpenAI API-nøgle</span>
           <input
@@ -29,6 +49,10 @@ export function AiSettingsModal({ open, busy, initialApiKey, onSave, onSkip }: A
             value={value}
             placeholder="sk-..."
             onChange={(event) => setValue(event.target.value)}
+            onFocus={(event) => {
+              // Markér hele feltet, så det er nemt at overskrive
+              event.target.select();
+            }}
             autoComplete="off"
           />
         </label>
@@ -37,13 +61,23 @@ export function AiSettingsModal({ open, busy, initialApiKey, onSave, onSkip }: A
           Workboard&quot;.
         </p>
         <div className="confirm-modal-actions">
+          {initialApiKey && onRemove ? (
+            <button
+              type="button"
+              className="ghost-button danger-button"
+              onClick={onRemove}
+              disabled={busy}
+            >
+              Fjern AI-nøgle
+            </button>
+          ) : null}
           <button
             type="button"
             className="secondary-button"
             onClick={onSkip}
             disabled={busy}
           >
-            Fortsæt uden AI
+            {initialApiKey ? "Luk uden at ændre AI" : "Fortsæt uden AI"}
           </button>
           <button
             type="button"
@@ -51,7 +85,7 @@ export function AiSettingsModal({ open, busy, initialApiKey, onSave, onSkip }: A
             onClick={() => onSave(value.trim() || null)}
             disabled={busy}
           >
-            Gem nøgle
+            {initialApiKey ? "Opdater AI-nøgle" : "Gem nøgle"}
           </button>
         </div>
       </div>

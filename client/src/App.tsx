@@ -869,6 +869,20 @@ export default function App() {
         open={showAiSetup}
         busy={busy}
         initialApiKey={aiApiKey}
+        onRemove={async () => {
+          setShowAiSetup(false);
+          if (!workspace) return;
+          const existing = (await loadConfig(workspace)) ?? {};
+          await saveConfig(workspace, {
+            ...existing,
+            ai: {
+              ...existing.ai,
+              apiKey: undefined,
+              seenSetup: true,
+            },
+          });
+          setAiApiKey(null);
+        }}
         onSkip={async () => {
           setShowAiSetup(false);
           if (!workspace) return;
