@@ -8,6 +8,7 @@ import {
   generateMorningBrief,
   optimizeTaskTitle,
   summarizeDescription,
+  summarizeDescriptionFromMessage,
   suggestTaskDescription,
 } from "./infrastructure/aiClient";
 import { TaskBoard } from "./features/tasks/TaskBoard";
@@ -453,7 +454,7 @@ export default function App() {
                     context,
                   });
                   setMorningBrief(brief);
-                }, "Morgenbrief genereret.");
+                });
               } finally {
                 setAiBusy(false);
               }
@@ -503,6 +504,11 @@ export default function App() {
                 newTaskDescription={newTaskDescription}
                 onNewTaskDescriptionChange={(value) => setNewTaskDescription(value)}
                 aiBusy={aiBusy}
+                aiLabel={
+                  aiApiKey && newTaskDescription.length > 120
+                    ? "✨ Ryd op fra mail/Teams"
+                    : "✨ Hjælp til beskrivelse"
+                }
                 onAiSuggestNewTaskDescription={() => {
                   if (!aiApiKey) {
                     setShowAiSetup(true);
@@ -516,12 +522,26 @@ export default function App() {
                     setAiBusy(true);
                     try {
                       await runAction(async () => {
-                        const suggestion = await suggestTaskDescription({
-                          apiKey: aiApiKey,
-                          title: newTaskTitle,
-                          currentDescription: newTaskDescription,
-                        });
-                        setNewTaskDescription(suggestion);
+                        const looksLikeMessage =
+                          newTaskDescription.length > 120 &&
+                          (/@(.*)\./.test(newTaskDescription) ||
+                            /mvh|med venlig hilsen|venlig hilsen|best regards|from:|fra:|sent:|sendt:/i.test(
+                              newTaskDescription,
+                            ));
+                        if (looksLikeMessage) {
+                          const result = await summarizeDescriptionFromMessage({
+                            apiKey: aiApiKey,
+                            text: newTaskDescription,
+                          });
+                          setNewTaskDescription(result.shorter);
+                        } else {
+                          const suggestion = await suggestTaskDescription({
+                            apiKey: aiApiKey,
+                            title: newTaskTitle,
+                            currentDescription: newTaskDescription,
+                          });
+                          setNewTaskDescription(suggestion);
+                        }
                       });
                     } finally {
                       setAiBusy(false);
@@ -601,10 +621,21 @@ export default function App() {
                       setMessage("Skriv mindst en titel eller lidt tekst først.");
                       return;
                     }
-                    const result = await summarizeDescription({
-                      apiKey: aiApiKey,
-                      text,
-                    });
+                    const looksLikeMessage =
+                      panelDraft.description.length > 120 &&
+                      (/@(.*)\./.test(panelDraft.description) ||
+                        /mvh|med venlig hilsen|venlig hilsen|best regards|from:|fra:|sent:|sendt:/i.test(
+                          panelDraft.description,
+                        ));
+                    const result = looksLikeMessage
+                      ? await summarizeDescriptionFromMessage({
+                          apiKey: aiApiKey,
+                          text,
+                        })
+                      : await summarizeDescription({
+                          apiKey: aiApiKey,
+                          text,
+                        });
                     // Opdater beskrivelsen først
                     let nextDraft: PanelDraft = {
                       ...panelDraft,
@@ -636,6 +667,11 @@ export default function App() {
               })();
             }}
             onOpenAiSettings={() => setShowAiSetup(true)}
+            aiLabel={
+              aiApiKey && panelDraft.description.length > 120
+                ? "✨ Ryd op fra mail/Teams"
+                : "✨ Hjælp til beskrivelse"
+            }
             aiBusy={aiBusy}
             onClose={() => setSelectedTaskId("")}
             onDraftChange={(draft) => setPanelDraft(draft)}

@@ -41,6 +41,7 @@ type TaskToolbarProps = {
   onNewTaskDescriptionChange: (value: string) => void;
   onAiSuggestNewTaskDescription: () => void;
   aiBusy: boolean;
+  aiLabel: string;
   onOpenNewTask: () => void;
   onCancelNewTask: () => void;
   onSubmitNewTask: (event: FormEvent) => void;
@@ -81,6 +82,7 @@ export function TaskToolbar({
   onNewTaskDescriptionChange,
   onAiSuggestNewTaskDescription,
   aiBusy,
+  aiLabel,
   onOpenNewTask,
   onCancelNewTask,
   onSubmitNewTask,
@@ -268,7 +270,7 @@ export function TaskToolbar({
                 onClick={onAiSuggestNewTaskDescription}
                 disabled={busy || aiBusy}
               >
-                {aiBusy ? "Arbejder med beskrivelse…" : "✨ Hjælp til beskrivelse"}
+                {aiBusy ? "Arbejder med tekst…" : aiLabel}
               </button>
             </div>
             <div className="new-task-actions">

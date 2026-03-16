@@ -253,12 +253,12 @@ body.theme-dark .task-panel-actions .muted.small {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 16rem minmax(0, 1fr) 22rem;
+  grid-template-columns: 13.5rem minmax(0, 1fr) 22rem;
   min-height: calc(100vh - 5rem);
 }
 
 .app-shell.without-task-panel {
-  grid-template-columns: 16rem minmax(0, 1fr);
+  grid-template-columns: 13.5rem minmax(0, 1fr);
 }
 
 .app-footer {
@@ -387,7 +387,7 @@ body.theme-dark .task-panel-actions .muted.small {
 
 .left-rail,
 .task-panel {
-  padding: 1.2rem 1.25rem;
+  padding: 0.9rem 0.9rem;
   background: rgba(248, 250, 252, 0.9);
   backdrop-filter: blur(10px);
 }
@@ -400,7 +400,7 @@ body.theme-dark .task-panel-actions .muted.small {
 }
 
 .main-area {
-  padding: 1.3rem 1.4rem 1.6rem;
+  padding: 1.1rem 1.1rem 1.4rem;
 }
 
 .eyebrow {

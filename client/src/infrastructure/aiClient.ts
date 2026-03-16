@@ -99,6 +99,31 @@ export async function summarizeDescription(
   return { shorter: result.trim() };
 }
 
+export async function summarizeDescriptionFromMessage(
+  opts: AiClientOptions & { text: string },
+): Promise<{ shorter: string }> {
+  const text = opts.text.trim();
+  if (!text) {
+    throw new Error("Der er ingen tekst at arbejde med.");
+  }
+
+  const result = await callOpenAiChat(opts, [
+    {
+      role: "system",
+      content:
+        "Du får rå tekst kopieret fra en mail eller en chat (f.eks. Teams). Du skal udlede, hvad opgaven konkret går ud på, og skrive en kort, klar opgavebeskrivelse på dansk. Fjern hilsener, signaturer og uvedkommende detaljer.",
+    },
+    {
+      role: "user",
+      content:
+        "Ud fra denne tekst skal du skrive en kort opgavebeskrivelse (2‑4 sætninger) der forklarer, hvad der konkret skal gøres, og hvad der er vigtigt at huske. Svar kun med selve beskrivelsen, uden forklaring eller punktopstilling:\n\n" +
+        text,
+    },
+  ]);
+
+  return { shorter: result.trim() };
+}
+
 export async function suggestTaskDescription(
   opts: AiClientOptions & { title?: string; currentDescription?: string },
 ): Promise<string> {

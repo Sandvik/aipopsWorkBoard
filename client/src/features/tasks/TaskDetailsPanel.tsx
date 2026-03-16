@@ -38,6 +38,7 @@ type TaskDetailsPanelProps = {
   // AI-hjælp (kaldes fra App, viser modal hvis der mangler nøgle).
   onAiSummarizeDescription: () => void;
   aiBusy: boolean;
+  aiLabel: string;
   onOpenAiSettings: () => void;
 };
 
@@ -57,6 +58,7 @@ export function TaskDetailsPanel({
   onAttachmentOpen,
   onAttachmentDelete,
   onAiSummarizeDescription,
+  aiLabel,
   onOpenAiSettings,
   aiBusy,
 }: TaskDetailsPanelProps) {
@@ -105,7 +107,7 @@ export function TaskDetailsPanel({
               onClick={onAiSummarizeDescription}
               disabled={busy || aiBusy}
             >
-              {aiBusy ? "Arbejder med beskrivelse…" : "✨ Hjælp til beskrivelse"}
+              {aiBusy ? "Arbejder med tekst…" : aiLabel}
             </button>
           </div>
         </div>
