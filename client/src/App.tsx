@@ -375,6 +375,8 @@ export default function App() {
         workspaceProgressTooltip={workspaceVm.workspaceProgressTooltip}
         projectTooltips={workspaceVm.projectTooltips}
         projectTaskCounts={workspaceVm.projectTaskCounts}
+        startTourAfterWorkspace={startTourAfterWorkspace}
+        onStartTourToggle={(checked) => setStartTourAfterWorkspace(checked)}
         search={search}
         onSearchChange={(value) => setSearch(value)}
         showFilters={showFilters}

@@ -26,6 +26,9 @@ type WorkspaceShellProps = {
   workspaceProgressTooltip: string;
   projectTooltips: Record<string, string>;
   projectTaskCounts: Record<string, number>;
+  // Onboarding / tur
+  startTourAfterWorkspace: boolean;
+  onStartTourToggle: (checked: boolean) => void;
   // Filtre / søgning
   search: string;
   onSearchChange: (value: string) => void;
@@ -112,6 +115,8 @@ export function WorkspaceShell({
   workspaceProgressTooltip,
   projectTooltips,
   projectTaskCounts,
+  startTourAfterWorkspace,
+  onStartTourToggle,
   search,
   onSearchChange,
   showFilters,
@@ -283,9 +288,9 @@ export function WorkspaceShell({
               </>
             ) : (
               <WorkspaceEmptyState
-                startTourAfterWorkspace={false}
+                startTourAfterWorkspace={startTourAfterWorkspace}
                 busy={busy}
-                onStartTourToggle={() => {}}
+                onStartTourToggle={onStartTourToggle}
                 onPickWorkspace={onPickWorkspace}
               />
             )}

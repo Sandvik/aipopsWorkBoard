@@ -1413,7 +1413,7 @@ body.theme-dark .toolbar-stat-chip-danger {
 .empty-main-card {
   width: calc(100% - 8rem);
   max-width: 52rem;
-  padding: 1.4rem 3.4rem;
+  padding: 2rem 3.4rem;
   border-radius: 1.5rem;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(148, 163, 184, 0.5);
@@ -1493,9 +1493,10 @@ body.theme-dark .empty-main-steps li::marker {
 
 .tour-hint-card {
   max-width: 28rem;
-  padding: 1.4rem 1.6rem;
+  padding: 1.8rem 1.9rem;
   border-radius: 1rem;
   background: rgba(15, 23, 42, 0.97);
+  border: 1px solid rgba(148, 163, 184, 0.8);
   color: #f9fafb;
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.6);
   display: grid;
