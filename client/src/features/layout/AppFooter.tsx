@@ -1,10 +1,14 @@
 // Footer med AIPOPS-branding og link til "Om AIPOPS Workboard".
+import { useStrings, useLocale } from "../../i18n";
+
 type AppFooterProps = {
   onShowAbout: () => void;
   onShowDataHelp: () => void;
 };
 
 export function AppFooter({ onShowAbout, onShowDataHelp }: AppFooterProps) {
+  const { footer } = useStrings();
+  const { locale, setLocale } = useLocale();
   return (
     <footer className="app-footer">
       <div className="app-footer-main">
@@ -13,17 +17,17 @@ export function AppFooter({ onShowAbout, onShowDataHelp }: AppFooterProps) {
             type="button"
             className="app-footer-link"
             onClick={onShowAbout}
-            title="Læs lidt mere om, hvad AIPOPS Workboard er (og ikke er)"
+            title={footer.aboutTooltip}
           >
-            Om AIPOPS Workboard
+            {footer.aboutLink}
           </button>
           <button
             type="button"
             className="app-footer-link"
             onClick={onShowDataHelp}
-            title="Se hvordan dine data gemmes lokalt, og hvordan du flytter dem til en ny PC"
+            title={footer.dataTooltip}
           >
-            Data og flytning
+            {footer.dataLink}
           </button>
         </div>
         <div className="app-footer-right">
@@ -34,6 +38,25 @@ export function AppFooter({ onShowAbout, onShowDataHelp }: AppFooterProps) {
                 AIPOPS
               </a>
             </span>
+          </div>
+          <div className="app-footer-meta">
+            <button
+              type="button"
+              className="app-footer-link"
+              onClick={() => setLocale("da")}
+              aria-pressed={locale === "da"}
+            >
+              DA
+            </button>
+            <span style={{ opacity: 0.5, paddingInline: "0.25rem" }}>/</span>
+            <button
+              type="button"
+              className="app-footer-link"
+              onClick={() => setLocale("en")}
+              aria-pressed={locale === "en"}
+            >
+              EN
+            </button>
           </div>
         </div>
       </div>

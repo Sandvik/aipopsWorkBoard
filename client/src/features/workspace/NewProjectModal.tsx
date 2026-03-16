@@ -1,4 +1,6 @@
 // Modal til at oprette et nyt projekt med navn.
+import { useStrings } from "../../i18n";
+
 type NewProjectModalProps = {
   open: boolean;
   value: string;
@@ -11,22 +13,24 @@ type NewProjectModalProps = {
 export function NewProjectModal({ open, value, busy, onChange, onCancel, onCreate }: NewProjectModalProps) {
   if (!open) return null;
 
+  const { sidebar: s } = useStrings();
+
   return (
     <div className="confirm-modal-backdrop">
       <div className="confirm-modal">
-        <h2>Nyt projekt</h2>
-        <p>Giv projektet et navn. Navnet skal være unikt i denne arbejdsmappe.</p>
+        <h2>{s.newProjectTitle}</h2>
+        <p>{s.newProjectDescription}</p>
         <div className="stack">
           <label>
             <span className="field-label">
-              Projektnavn <span className="required-mark">*</span>
+              {s.newProjectFieldLabel} <span className="required-mark">*</span>
             </span>
             <input
               value={value}
               onChange={(event) => onChange(event.target.value)}
               autoFocus
               className={!value.trim() ? "input-invalid" : ""}
-              placeholder="F.eks. Kundeprojekter, Personlige opgaver …"
+              placeholder={s.newProjectPlaceholder}
             />
           </label>
         </div>
@@ -37,7 +41,7 @@ export function NewProjectModal({ open, value, busy, onChange, onCancel, onCreat
             onClick={onCancel}
             disabled={busy}
           >
-            Annuller
+            {s.newProjectCancelLabel}
           </button>
           <button
             type="button"
@@ -45,7 +49,7 @@ export function NewProjectModal({ open, value, busy, onChange, onCancel, onCreat
             onClick={onCreate}
             disabled={busy || !value.trim()}
           >
-            Opret projekt
+            {s.newProjectCreateLabel}
           </button>
         </div>
       </div>

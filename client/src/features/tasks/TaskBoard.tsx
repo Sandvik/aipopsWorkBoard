@@ -2,7 +2,8 @@
 // Har intet kendskab til filsystem eller global app-state –
 // alt styres via props og callbacks.
 import type { ProjectRecord, TaskRecord, TaskStatus } from "../../types";
-import { PRIORITY_LABELS, STATUS_LABELS, formatDate, isOverdue } from "./taskUi";
+import { PRIORITY_LABELS, formatDate, isOverdue } from "./taskUi";
+import { useStrings } from "../../i18n";
 
 type TaskBoardProps = {
   // Alle tasks der skal vises (allerede filtreret i App).
@@ -33,12 +34,7 @@ export function TaskBoard({
   onTaskDragStart,
   onTaskDragEnd,
 }: TaskBoardProps) {
-  const statusSubtitles: Record<TaskStatus, string> = {
-    backlog: "Idéer / senere",
-    todo: "Klar til at starte",
-    doing: "Arbejdet er i gang",
-    done: "Færdigt arbejde",
-  };
+  const { board } = useStrings();
 
   return (
     <>
@@ -64,8 +60,8 @@ export function TaskBoard({
           >
             <div className="column-header">
               <div>
-                <h2>{STATUS_LABELS[status]}</h2>
-                <p className="column-subtitle muted small">{statusSubtitles[status]}</p>
+                <h2>{board.columnTitles[status]}</h2>
+                <p className="column-subtitle muted small">{board.columnSubtitles[status]}</p>
               </div>
               <span className="muted column-count">{columnTasks.length}</span>
             </div>
@@ -110,7 +106,7 @@ export function TaskBoard({
                     </div>
                     <div className="project-mark">{project?.name ?? task.projectSlug}</div>
                     <div className="task-card-meta">
-                      <span className="muted">👤 {task.assignee || "Ingen ansvarlig"}</span>
+                      <span className="muted">👤 {task.assignee || board.assigneeNone}</span>
                       <span className={`deadline ${isOverdue(task.deadline) ? "overdue" : ""}`}>
                         🗓 {formatDate(task.deadline)}
                       </span>
@@ -122,7 +118,7 @@ export function TaskBoard({
                   </button>
                 );
               })}
-              {!columnTasks.length ? <div className="muted">Ingen opgaver i denne kolonne.</div> : null}
+              {!columnTasks.length ? <div className="muted">{board.emptyColumn}</div> : null}
             </div>
           </div>
         );

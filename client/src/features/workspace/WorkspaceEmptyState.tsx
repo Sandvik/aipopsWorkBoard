@@ -1,5 +1,6 @@
 // Tom-tilstand når ingen arbejdsmappe er valgt endnu.
 // Viser kort forklaring og en knap til at vælge mappe.
+import { useStrings } from "../../i18n";
 type WorkspaceEmptyStateProps = {
   startTourAfterWorkspace: boolean;
   busy: boolean;
@@ -13,6 +14,7 @@ export function WorkspaceEmptyState({
   onStartTourToggle,
   onPickWorkspace,
 }: WorkspaceEmptyStateProps) {
+  const { onboarding: t } = useStrings();
   return (
     <div className="empty-main">
       <div className="empty-main-inner">
@@ -63,39 +65,28 @@ export function WorkspaceEmptyState({
         </div>
 
         <div className="empty-main-card">
-          <h2>Få ét overblik over dine opgaver</h2>
+          <h2>{t.title}</h2>
           <p className="muted">
-            AIPOPS Workboard er et enkelt board til dine projekter og opgaver – især dem, der
-            starter som lange mails eller chats.
+            {t.introLine1}
             <br />
-            Alt gemmes som filer i en mappe på din egen computer – ingen servere, ingen login.
+            {t.introLine2}
           </p>
           <ul className="empty-main-steps">
-            <li>Vælg en arbejdsmappe til dine data (en almindelig mappe på din disk).</li>
-            <li>Opret dit første projekt i sidebaren – arbejde, privat eller noget midt imellem.</li>
-            <li>Tilføj opgaver og træk dem mellem kolonnerne (Backlog / Klar / I gang / Færdig).</li>
-            <li>
-              Får du opgaver via mail eller Teams? Kopiér emne og tekst ind i en ny opgave, og træk
-              vedhæftninger hertil.
-            </li>
+            {t.steps.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
           </ul>
           <pre className="muted small" style={{ marginTop: "0.6rem", marginBottom: "0.4rem" }}>
-{`Fra tekst til board:
-
-[ Mail / Teams ]  -->  [ To do | I gang | Færdig ]`}
+            {t.asciiHint}
           </pre>
-          <p className="muted small">
-            AI-hjælp til titler, beskrivelser og delopgaver er valgfrit. Hvis du vil bruge det, kan
-            du senere tilføje din egen OpenAI-nøgle – dine opgaver gemmes stadig som filer i
-            arbejds­mappen på din egen computer.
-          </p>
+          <p className="muted small">{t.aiNote}</p>
           <label className="toggle tour-toggle">
             <input
               type="checkbox"
               checked={startTourAfterWorkspace}
               onChange={(event) => onStartTourToggle(event.target.checked)}
             />
-            Vis en kort rundtur efter valg af mappe
+            {t.tourLabel}
           </label>
           <button
             type="button"
@@ -103,7 +94,7 @@ export function WorkspaceEmptyState({
             onClick={onPickWorkspace}
             disabled={busy}
           >
-            Vælg mappe
+            {t.chooseFolderButton}
           </button>
         </div>
       </div>

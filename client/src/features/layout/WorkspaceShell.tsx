@@ -6,6 +6,7 @@ import { WorkspaceSidebar } from "../workspace/WorkspaceSidebar";
 import { WorkspaceEmptyState } from "../workspace/WorkspaceEmptyState";
 import type { PanelDraft } from "../tasks/taskUi";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { useStrings } from "../../i18n";
 
 type WorkspaceShellProps = {
   isMobileLike: boolean;
@@ -180,16 +181,14 @@ export function WorkspaceShell({
   onSelectProject,
   onDeleteProject,
 }: WorkspaceShellProps) {
+  const { onboarding: onboardingStrings } = useStrings();
   return (
     <>
       {isMobileLike ? (
         <div className="mobile-warning-backdrop">
           <div className="mobile-warning-card">
-            <h1 className="mobile-warning-title">AIPOPS Workboard virker bedst på en computer</h1>
-            <p className="mobile-warning-text">
-              Dette board er designet til større skærme. Åbn siden på en bærbar eller desktop for
-              at arbejde med dine projekter og opgaver.
-            </p>
+            <h1 className="mobile-warning-title">{onboardingStrings.mobileWarningTitle}</h1>
+            <p className="mobile-warning-text">{onboardingStrings.mobileWarningBody}</p>
           </div>
         </div>
       ) : null}
@@ -270,11 +269,8 @@ export function WorkspaceShell({
                 >
                   {visibleTasks.length === 0 ? (
                     <div className="board-empty">
-                      <p>Ingen opgaver endnu.</p>
-                      <p className="muted small">
-                        Nyd det et øjeblik – eller klik &quot;Ny opgave&quot; og begynd at være ærlig
-                        om din indbakke.
-                      </p>
+                      <p>{onboardingStrings.emptyBoardTitle}</p>
+                      <p className="muted small">{onboardingStrings.emptyBoardBody}</p>
                     </div>
                   ) : null}
                   <TaskBoard

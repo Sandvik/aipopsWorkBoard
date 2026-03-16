@@ -5,6 +5,7 @@
 import type { FormEvent } from "react";
 import type { ProjectRecord } from "../../types";
 import { PRIORITY_LABELS } from "./taskUi";
+import { useStrings } from "../../i18n";
 
 type TaskToolbarProps = {
   hasWorkspace: boolean;
@@ -91,13 +92,14 @@ export function TaskToolbar({
   onCancelNewTask,
   onSubmitNewTask,
 }: TaskToolbarProps) {
+  const { toolbar: t } = useStrings();
   const hasProblems = overdueVisibleTasks > 0 || highPriorityVisibleTasks > 0;
   const hasTodayWork = dueTodayVisibleTasks > 0 || doingVisibleTasks > 0;
   const summaryText = hasProblems
-    ? "Lidt at indhente i dag"
+    ? t.statsSummaryProblems
     : hasTodayWork
-      ? "God arbejdsdag i gang"
-      : "Du har fint styr på tingene";
+      ? t.statsSummaryBusy
+      : t.statsSummaryOk;
 
   return (
     <div className="toolbar">
@@ -108,41 +110,45 @@ export function TaskToolbar({
             <input
               value={search}
               onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Søg i opgaver"
+              placeholder={t.searchPlaceholder}
             />
           </div>
         </div>
         <div className="toolbar-stats">
           <span className="toolbar-stats-summary">{summaryText}</span>
           <span className="toolbar-stat-chip toolbar-stat-chip-primary toolbar-stat-chip-main">
-            {totalVisibleTasks || "Ingen"} opgave
-            {totalVisibleTasks === 1 ? "" : "r"}
+            {totalVisibleTasks || t.statsTotalNone}{" "}
+            {totalVisibleTasks === 1 ? t.statsTotalLabelSingular : t.statsTotalLabelPlural}
           </span>
           {dueTodayVisibleTasks > 0 ? (
             <span className="toolbar-stat-chip toolbar-stat-chip-today">
-              {dueTodayVisibleTasks} i dag
+              {dueTodayVisibleTasks} {t.statsDueTodaySuffix}
             </span>
           ) : null}
           {overdueVisibleTasks > 0 ? (
             <span className="toolbar-stat-chip toolbar-stat-chip-danger toolbar-stat-chip-overdue">
-              {overdueVisibleTasks} forsinket
-              {overdueVisibleTasks === 1 ? "" : "e"}
+              {overdueVisibleTasks}{" "}
+              {overdueVisibleTasks === 1
+                ? t.statsOverdueSuffixSingular
+                : t.statsOverdueSuffixPlural}
             </span>
           ) : null}
           {doingVisibleTasks > 0 ? (
             <span className="toolbar-stat-chip toolbar-stat-chip-doing">
-              {doingVisibleTasks} i gang
+              {doingVisibleTasks} {t.statsDoingSuffix}
             </span>
           ) : null}
           {doneVisibleTasks > 0 ? (
             <span className="toolbar-stat-chip toolbar-stat-chip-today">
-              {doneVisibleTasks} færdig
-              {doneVisibleTasks === 1 ? "" : "e"}
+              {doneVisibleTasks}{" "}
+              {doneVisibleTasks === 1
+                ? t.statsDoneSuffixSingular
+                : t.statsDoneSuffixPlural}
             </span>
           ) : null}
           {highPriorityVisibleTasks > 0 ? (
             <span className="toolbar-stat-chip toolbar-stat-chip-priority">
-              {highPriorityVisibleTasks} høj prioritet
+              {highPriorityVisibleTasks} {t.statsHighPrioritySuffix}
             </span>
           ) : null}
         </div>
@@ -151,11 +157,7 @@ export function TaskToolbar({
             type="button"
             className="ghost-button theme-toggle-button"
             onClick={onToggleTheme}
-            title={
-              theme === "light"
-                ? "Skift til mørkt, hvis skærmen larmer"
-                : "Skift til lyst, hvis hovedet gør"
-            }
+            title={theme === "light" ? t.themeToggleLight : t.themeToggleDark}
           >
             <span aria-hidden="true">{theme === "light" ? "🌙" : "☀️"}</span>
             <span className="visually-hidden">
@@ -166,22 +168,18 @@ export function TaskToolbar({
             type="button"
             className={`ghost-button filter-chip ${filtersActive ? "filter-chip-active" : ""}`}
             onClick={onToggleFilters}
-            title={
-              filtersActive
-                ? "Filtre er tændt – sluk dem for at se virkeligheden igen"
-                : "Skru ned for støjen med et par filtre"
-            }
+            title={filtersActive ? t.filtersOn : t.filtersOff}
           >
-            <span className="filter-chip-label">Filtre</span>
+            <span className="filter-chip-label">{t.filtersLabel}</span>
           </button>
           <button
             type="button"
             className="primary-button"
             disabled={busy || !projects.length}
             onClick={onOpenNewTask}
-            title={projects.length ? "Opret en ny opgave på boardet" : "Opret et projekt før du laver opgaver"}
+            title={projects.length ? t.newTaskWithProjects : t.newTaskNoProjects}
           >
-            + Ny opgave
+            {projects.length ? `+ ${t.newTaskCreateLabel}` : `+ ${t.newProjectButton ?? "Projekt"}`}
           </button>
         </div>
       </div>
@@ -192,7 +190,7 @@ export function TaskToolbar({
             value={priorityFilter}
             onChange={(event) => onPriorityFilterChange(event.target.value)}
           >
-            <option value="">Alle prioriteter</option>
+            <option value="">{t.filtersAllPriorities}</option>
             {Object.entries(PRIORITY_LABELS).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
@@ -203,7 +201,7 @@ export function TaskToolbar({
             value={assigneeFilter}
             onChange={(event) => onAssigneeFilterChange(event.target.value)}
           >
-            <option value="">Alle ansvarlige</option>
+            <option value="">{t.filtersAllAssignees}</option>
             {assignees.map((assignee) => (
               <option key={assignee} value={assignee}>
                 {assignee}
@@ -214,17 +212,16 @@ export function TaskToolbar({
             type="button"
             className="ghost-button"
             onClick={onResetFilters}
-            title="Fjern alle filtre og vis hele boardet igen"
+            title={t.resetFilters}
           >
+            {/** Label holdes kort; kan evt. også gøres til i18n senere */}
             Nulstil
           </button>
         </div>
       ) : null}
 
       {filtersActive && (
-        <p className="muted small">
-          Filtre er aktive. Brug &quot;Nulstil&quot; for at se alle opgaver igen.
-        </p>
+        <p className="muted small">{t.filtersHintActive}</p>
       )}
 
       {isCreatingTask ? (
@@ -232,25 +229,27 @@ export function TaskToolbar({
           <div className="new-task-grid">
             <label>
               <span className="field-label">
-                Titel <span className="required-mark">*</span>
+                {t.newTaskTitleLabel} <span className="required-mark">*</span>
               </span>
               <input
                 value={newTaskTitle}
                 onChange={(event) => onNewTaskTitleChange(event.target.value)}
                 className={!newTaskTitle.trim() ? "input-invalid" : ""}
-                placeholder="Hvad skal gøres? (emnet fra mailen virker fint)"
+                placeholder={t.titlePlaceholder}
               />
             </label>
             <label>
               <span className="field-label">
-                Projekt <span className="required-mark">*</span>
+                {t.newTaskProjectLabel} <span className="required-mark">*</span>
               </span>
               <select
                 value={newTaskProjectSlug}
                 onChange={(event) => onNewTaskProjectSlugChange(event.target.value)}
               >
                 <option value="">
-                  {hasWorkspace ? "Vælg projekt" : "Vælg arbejdsmappe først"}
+                  {hasWorkspace
+                    ? t.newTaskProjectPlaceholderHasWorkspace
+                    : t.newTaskProjectPlaceholderNoWorkspace}
                 </option>
                 {projects.map((project) => (
                   <option key={project.id} value={project.slug}>
@@ -260,21 +259,21 @@ export function TaskToolbar({
               </select>
             </label>
             <label>
-              Ansvarlig
+              {t.newTaskAssigneeLabel}
               <input
                 value={newTaskAssignee}
                 onChange={(event) => onNewTaskAssigneeChange(event.target.value)}
-                placeholder="Navn (valgfrit)"
+                placeholder={t.newTaskAssigneePlaceholder}
               />
             </label>
           </div>
           <label className="new-task-description">
-            <span className="field-label">Beskrivelse (valgfri)</span>
+            <span className="field-label">{t.newTaskDescriptionLabel}</span>
             <textarea
               rows={2}
               value={newTaskDescription}
               onChange={(event) => onNewTaskDescriptionChange(event.target.value)}
-              placeholder="Kort tekst om opgaven – eller bare hele mailen, så tager vi den derfra."
+              placeholder={t.descriptionPlaceholder}
             />
           </label>
           <div className="new-task-footer-row">
@@ -285,7 +284,7 @@ export function TaskToolbar({
                   className="ghost-button"
                   onClick={onSplitNewTaskDescription}
                   disabled={busy || aiBusy}
-                  title="Lav flere konkrete opgaver ud fra tekstmuren, du lige indsatte"
+                  title={t.aiSplitTooltip}
                 >
                   {aiBusy ? "Laver opgave-forslag…" : "Lav konkrete opgaver ud fra teksten"}
                 </button>
@@ -295,7 +294,7 @@ export function TaskToolbar({
                   className="ghost-button"
                   onClick={onAiSuggestNewTaskDescription}
                   disabled={busy || aiBusy}
-                  title="Få hjælp til at skrive noget, der lyder mindre som en lynnote til dig selv"
+                  title={t.aiHelpTooltip}
                 >
                   {aiBusy ? "Arbejder med tekst…" : aiLabel}
                 </button>
@@ -306,23 +305,22 @@ export function TaskToolbar({
                 type="button"
                 className="ghost-button"
                 onClick={onCancelNewTask}
-                title="Luk uden at oprette opgaven"
+                title={t.cancelNewTask}
               >
-                Annuller
+                {t.newTaskCancelLabel}
               </button>
               <button
                 type="submit"
                 className="primary-button"
                 disabled={busy || !newTaskTitle.trim()}
-                title="Gem den nye opgave på boardet"
+                title={t.saveNewTask}
               >
-                Opret opgave
+                {t.newTaskCreateLabel}
               </button>
             </div>
           </div>
           <p className="form-note new-task-mail-hint">
-            Tip: Får du opgaven pr. mail, kan du indsætte emnelinjen i titel og teksten fra mailen i
-            beskrivelsen.
+            {t.newTaskMailHint}
           </p>
         </form>
       ) : null}

@@ -6,6 +6,7 @@ import type { ProjectRecord } from "../../types";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import sidebarImage from "../../assets/aipops-workboard-sidebar-transparent.png";
+import { useStrings } from "../../i18n";
 
 type WorkspaceSidebarProps = {
   hasWorkspace: boolean;
@@ -46,6 +47,7 @@ export function WorkspaceSidebar({
   onSelectProject,
   onDeleteProject,
 }: WorkspaceSidebarProps) {
+  const { sidebar: t } = useStrings();
   return (
     <aside className="left-rail">
       <div className="app-brand">
@@ -59,7 +61,7 @@ export function WorkspaceSidebar({
         <>
           <div className="workspace-card">
             <div className="workspace-card-header">
-              <p className="eyebrow">Din arbejdsmappe</p>
+              <p className="eyebrow">{t.yourWorkspace}</p>
               <div className="workspace-folder-chip" title={workspaceName || undefined}>
                 <span className="workspace-folder-strip" aria-hidden="true" />
                 <p className="workspace-name">
@@ -75,22 +77,18 @@ export function WorkspaceSidebar({
                   className="primary-button"
                   onClick={onPickWorkspace}
                   disabled={busy}
-                  title={
-                    workspaceName
-                        ? "Skift til en anden arbejdsmappe (ny placering, ny PC eller bare oprydning)"
-                        : "Vælg en arbejdsmappe på din computer for at komme i gang"
-                  }
+                  title={workspaceName ? t.switchWorkspace : t.chooseWorkspace}
                 >
-                  {workspaceName ? "Skift mappe" : "Vælg mappe"}
+                  {workspaceName ? t.switchFolderButton : t.chooseWorkspace}
                 </button>
                 <button
                   type="button"
                   className="secondary-button"
                   onClick={onRefreshData}
                   disabled={busy}
-                  title="Ved delt mappe: klik for at hente andres ændringer (og se hvad de har lavet siden sidst)"
+                  title={t.refreshTooltip}
                 >
-                  Opdater
+                  {t.refreshButton}
                 </button>
               </div>
             </div>
@@ -98,7 +96,7 @@ export function WorkspaceSidebar({
 
           <div className="workspace-card projects-card">
             <div className="projects-head-main">
-              <p className="eyebrow">Dine projekter</p>
+              <p className="eyebrow">{t.projectsHeader}</p>
             </div>
             <button
               type="button"
@@ -107,16 +105,16 @@ export function WorkspaceSidebar({
               onClick={onCreateProject}
               title="Opret et nyt projekt i den valgte arbejdsmappe"
             >
-              + Nyt projekt
+              {t.newProjectButton}
             </button>
             <button
               type="button"
               className="secondary-button morning-brief-button"
               onClick={onShowMorningBrief}
               disabled={busy}
-                title="Få et kort morgen-overblik uden at åbne alle mails først"
+              title={t.briefTooltip}
             >
-              ✨ Brief
+              {t.briefButton}
             </button>
 
             <div className="project-list">
@@ -145,9 +143,7 @@ export function WorkspaceSidebar({
                 </button>
               ))}
               {!activeProjects.length ? (
-                <p className="muted small">
-                  Ingen aktive projekter endnu. Start med ét – flere skal nok selv melde sig.
-                </p>
+                <p className="muted small">{t.noProjects}</p>
               ) : null}
 
               {archivedProjects.length ? (
@@ -189,7 +185,7 @@ export function WorkspaceSidebar({
                     }
                   }}
                 >
-                  Slet projekt
+                  {t.deleteProjectButton}
                 </button>
               )}
             </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useStrings } from "../../i18n";
 
 type AiSettingsModalProps = {
   open: boolean;
@@ -18,6 +19,7 @@ export function AiSettingsModal({
   onRemove,
 }: AiSettingsModalProps) {
   const [value, setValue] = useState(initialApiKey ?? "");
+  const { aiSettings: t } = useStrings();
 
   useEffect(() => {
     if (open) {
@@ -30,24 +32,17 @@ export function AiSettingsModal({
   return (
     <div className="confirm-modal-backdrop">
       <div className="confirm-modal ai-settings-modal" role="dialog" aria-modal="true">
-        <h2>AI-indstillinger (valgfrit)</h2>
-        <p>
-          Hvis du vil bruge AI-hjælp til titler og små tekstopgaver, kan du indtaste din egen OpenAI
-          API-nøgle her. Nøglen gemmes kun som en fil i din arbejdsmappe og bruges kun, når du selv
-          trykker på en AI-knap.
-        </p>
+        <h2>{t.title}</h2>
+        <p>{t.intro}</p>
         {initialApiKey ? (
-          <p className="muted small">
-            Der er allerede sat en AI-nøgle op for denne arbejdsmappe. Du kan ændre den herunder eller
-            fjerne den helt.
-          </p>
+          <p className="muted small">{t.existingNote}</p>
         ) : null}
         <label>
-          <span className="field-label">Din OpenAI API-nøgle</span>
+          <span className="field-label">{t.label}</span>
           <input
             type="password"
             value={value}
-            placeholder="sk-..."
+            placeholder={t.placeholder}
             onChange={(event) => setValue(event.target.value)}
             onFocus={(event) => {
               // Markér hele feltet, så det er nemt at overskrive
@@ -57,8 +52,7 @@ export function AiSettingsModal({
           />
         </label>
         <p className="muted small">
-          Du kan altid springe dette over nu og tilføje nøglen senere fra &quot;Om AIPOPS
-          Workboard&quot;.
+          {t.skipNote}
         </p>
         <div className="confirm-modal-actions">
           {initialApiKey && onRemove ? (
@@ -67,9 +61,9 @@ export function AiSettingsModal({
               className="ghost-button danger-button"
               onClick={onRemove}
               disabled={busy}
-            title="Fjern AI-nøglen, så denne arbejdsmappe igen kører helt uden AI"
+              title={t.removeTitle}
             >
-              Fjern nøgle
+              {t.removeLabel}
             </button>
           ) : null}
           <button
@@ -77,22 +71,18 @@ export function AiSettingsModal({
             className="secondary-button"
             onClick={onSkip}
             disabled={busy}
-            title={initialApiKey ? "Luk uden at ændre noget" : "Spring AI-opsætning over for nu"}
+            title={initialApiKey ? t.skipTitleWithKey : t.skipTitleNoKey}
           >
-            {initialApiKey ? "Luk" : "Spring over"}
+            {initialApiKey ? t.skipLabelWithKey : t.skipLabelNoKey}
           </button>
           <button
             type="button"
             className="primary-button"
             onClick={() => onSave(value.trim() || null)}
             disabled={busy}
-            title={
-              initialApiKey
-                ? "Opdater AI-nøglen for denne arbejdsmappe"
-                : "Gem din AI-nøgle, så AIPOPS kan hjælpe med tekster"
-            }
+            title={initialApiKey ? t.saveTitleWithKey : t.saveTitleNoKey}
           >
-            {initialApiKey ? "Opdater nøgle" : "Gem nøgle"}
+            {initialApiKey ? t.saveLabelWithKey : t.saveLabelNoKey}
           </button>
         </div>
       </div>

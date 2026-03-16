@@ -24,10 +24,11 @@ import { MorningBriefModal } from "./features/layout/MorningBriefModal";
 import { useAiFeatures } from "./features/layout/useAiFeatures";
 import { WorkspaceShell } from "./features/layout/WorkspaceShell";
 import { buildWorkspaceViewModel } from "./features/workspace/workspaceViewModel";
+import { LocaleProvider, useStrings } from "./i18n";
 
 type WorkspaceHandle = FileSystemDirectoryHandle | null;
 
-export default function App() {
+function AppInner() {
   // Central page-state:
   // - workspace/workspaceName: valgt mappe på brugerens disk
   // - projects/tasksByProject: domænedata læst fra filsystemet
@@ -355,11 +356,13 @@ export default function App() {
     return () => window.removeEventListener("keydown", handleKeydown);
   }, [selectedTask, busy, panelDraft.title, panelDraft.projectSlug, showAbout]);
 
+  const { dataHelp } = useStrings();
+
   return (
     <div className="app-root">
-      <AppHeader error={error} message={message} />
+        <AppHeader error={error} message={message} />
 
-      <WorkspaceShell
+        <WorkspaceShell
         isMobileLike={isMobileLike}
         hasWorkspace={hasWorkspace}
         workspaceName={workspaceName}
@@ -460,7 +463,7 @@ export default function App() {
         onDeleteProject={(project) => void handleProjectDelete(project)}
       />
 
-      {showTour ? (
+        {showTour ? (
         <TourOverlay
           tourStep={tourStep}
           onSkip={() => setShowTour(false)}
@@ -474,7 +477,7 @@ export default function App() {
         />
       ) : null}
 
-      {confirmState ? (
+        {confirmState ? (
         <ConfirmModal
           title={confirmState.title}
           message={confirmState.message}
@@ -485,48 +488,40 @@ export default function App() {
         />
       ) : null}
 
-      {showDataHelp ? (
-        <ConfirmModal
-          title="Hvordan gemmes og flyttes dine data?"
-          className="confirm-modal-large"
-          showCancel={false}
-          message={
-            <>
-              <p>
-                AIPOPS Workboard gemmer alle projekter og opgaver som almindelige filer i den
-                arbejdsmappe, du har valgt. Der er ingen skjult database eller server.
-              </p>
-              <ul>
-                <li>
-                  <strong>Skifte mappe på samme PC:</strong> Kopiér/ flyt hele arbejds­mappen til et
-                  nyt sted, og klik derefter på &quot;Skift mappe&quot; i sidebaren og peg på den
-                  nye placering.
-                </li>
-                <li>
-                  <strong>Ny computer:</strong> Kopiér arbejds­mappen til den nye maskine (fx via
-                  USB, OneDrive eller andre steder), og vælg den derefter som arbejdsmappe i AIPOPS
-                  Workboard.
-                </li>
-                <li>
-                  <strong>Flere workspaces:</strong> Du kan have flere mapper (fx arbejde/privat) og
-                  skifte mellem dem med &quot;Skift mappe&quot;.
-                </li>
-              </ul>
-              <p>
-                Din AI‑nøgle gemmes også kun i arbejds­mappen. Flytter du mappen, følger
-                AI‑opsætningen med.
-              </p>
-            </>
-          }
-          confirmLabel="OK"
-          onCancel={() => setShowDataHelp(false)}
-          onConfirm={() => {
-            setShowDataHelp(false);
-          }}
-        />
-      ) : null}
+        {showDataHelp ? (
+          <ConfirmModal
+            title={dataHelp.title}
+            className="confirm-modal-large"
+            showCancel={false}
+            message={
+              <>
+                <p>{dataHelp.intro}</p>
+                <ul>
+                  <li>
+                    <strong>{dataHelp.bulletSamePc.split(":")[0]}:</strong>{" "}
+                    {dataHelp.bulletSamePc.split(":").slice(1).join(":").trim()}
+                  </li>
+                  <li>
+                    <strong>{dataHelp.bulletNewComputer.split(":")[0]}:</strong>{" "}
+                    {dataHelp.bulletNewComputer.split(":").slice(1).join(":").trim()}
+                  </li>
+                  <li>
+                    <strong>{dataHelp.bulletMultiple.split(":")[0]}:</strong>{" "}
+                    {dataHelp.bulletMultiple.split(":").slice(1).join(":").trim()}
+                  </li>
+                </ul>
+                <p>{dataHelp.outro}</p>
+              </>
+            }
+            confirmLabel={dataHelp.confirmLabel}
+            onCancel={() => setShowDataHelp(false)}
+            onConfirm={() => {
+              setShowDataHelp(false);
+            }}
+          />
+        ) : null}
 
-      <SplitTasksModal
+        <SplitTasksModal
         open={showSplitModal}
         suggestions={splitSuggestions}
         canMarkOriginalDone={!!selectedTask}
@@ -577,13 +572,13 @@ export default function App() {
         }}
       />
 
-      <MorningBriefModal
+        <MorningBriefModal
         open={showMorningBrief}
         brief={morningBrief}
         onClose={() => setShowMorningBrief(false)}
       />
 
-      <AiSettingsModal
+        <AiSettingsModal
         open={showAiSetup}
         busy={busy}
         initialApiKey={aiApiKey}
@@ -630,7 +625,7 @@ export default function App() {
         }}
       />
 
-      <NewProjectModal
+        <NewProjectModal
         open={showNewProjectModal}
         value={newProjectName}
         busy={busy}
@@ -655,5 +650,13 @@ export default function App() {
         onOpenAiSettings={() => setShowAiSetup(true)}
       />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <LocaleProvider>
+      <AppInner />
+    </LocaleProvider>
   );
 }

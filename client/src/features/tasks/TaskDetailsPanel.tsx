@@ -4,7 +4,8 @@
 import type { ChangeEvent } from "react";
 import type { ProjectRecord, TaskRecord, TaskPriority, TaskStatus } from "../../types";
 import type { PanelDraft } from "./taskUi";
-import { PRIORITY_LABELS, STATUS_LABELS } from "./taskUi";
+import { PRIORITY_LABELS } from "./taskUi";
+import { useLocale, useStrings } from "../../i18n";
 
 type TaskDetailsPanelProps = {
   // Den fulde task der redigeres.
@@ -66,24 +67,26 @@ export function TaskDetailsPanel({
   canSplitFromDescription,
   onSplitFromDescription,
 }: TaskDetailsPanelProps) {
+  const { taskPanel: t } = useStrings();
+  const { locale } = useLocale();
   return (
     <aside className="task-panel">
       <div className="row between">
-        <p className="eyebrow">Opgavedetaljer</p>
+        <p className="eyebrow">{t.title}</p>
         <button
           type="button"
           className="ghost-button small-button"
           onClick={onClose}
-          title="Luk detaljevisningen og gå tilbage til boardet"
+          title={t.closeTitle}
         >
-          Luk
+          {t.closeLabel}
         </button>
       </div>
       <div>
         <div className="stack">
           <label>
             <span className="field-label">
-              Titel <span className="required-mark">*</span>
+              {t.descriptionLabel} <span className="required-mark">*</span>
             </span>
             <input
               value={draft.title}
@@ -97,7 +100,7 @@ export function TaskDetailsPanel({
             />
           </label>
           <label>
-            Beskrivelse
+            {t.descriptionLabel}
             <textarea
               rows={3}
               value={draft.description}
@@ -136,10 +139,10 @@ export function TaskDetailsPanel({
       </div>
 
       <div>
-        <p className="eyebrow">Basisinfo</p>
+        <p className="eyebrow">{t.basicsSectionTitle}</p>
         <div className="panel-grid">
           <label>
-            Ansvarlig
+            {t.assigneeLabel}
             <input
               value={draft.assignee}
               onChange={(event) =>
@@ -151,7 +154,7 @@ export function TaskDetailsPanel({
             />
           </label>
           <label>
-            Frist
+            {t.deadlineLabel}
             <input
               type="date"
               value={draft.deadline}
@@ -164,7 +167,7 @@ export function TaskDetailsPanel({
             />
           </label>
           <label>
-            Prioritet
+            {t.priorityLabel}
             <select
               value={draft.priority}
               onChange={(event) =>
@@ -182,7 +185,7 @@ export function TaskDetailsPanel({
             </select>
           </label>
           <label>
-            Status
+            {t.statusLabel}
             <select
               value={draft.status}
               onChange={(event) =>
@@ -192,16 +195,17 @@ export function TaskDetailsPanel({
                 })
               }
             >
-              {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
+              {(["backlog", "todo", "doing", "done"] as TaskStatus[]).map((status) => (
+                <option key={status} value={status}>
+                  {/** Board uses the same titles for columns and dropdown */}
+                  {useStrings().board.columnTitles[status]}
                 </option>
               ))}
             </select>
           </label>
           <label>
             <span className="field-label">
-              Projekt <span className="required-mark">*</span>
+              {t.projectLabel} <span className="required-mark">*</span>
             </span>
             <select
               value={draft.projectSlug}
@@ -213,7 +217,7 @@ export function TaskDetailsPanel({
               }
               className={!draft.projectSlug ? "input-invalid" : ""}
             >
-              <option value="">Vælg projekt</option>
+              <option value="">{t.projectPlaceholder}</option>
               {projects
                 .filter((project) => !project.archived)
                 .map((project) => (
@@ -227,12 +231,10 @@ export function TaskDetailsPanel({
       </div>
 
       <div>
-        <p className="eyebrow">Vedhæftninger</p>
+        <p className="eyebrow">{t.attachmentsSectionTitle}</p>
         <label className="dropzone upload-button">
-          Tilføj fil
-          <span className="form-note attachment-note">
-            (Evt. træk vedhæftninger hertil direkte fra din mail.)
-          </span>
+          {t.addFileLabel}
+          <span className="form-note attachment-note">{t.attachmentNote}</span>
           <input type="file" onChange={onAttachmentChange} hidden />
         </label>
         <div className="stack">
@@ -249,34 +251,38 @@ export function TaskDetailsPanel({
                 type="button"
                 className="ghost-button danger-button"
                 onClick={() => onAttachmentDelete(attachment.id)}
-                title="Fjern denne vedhæftning fra opgaven"
+                title={t.removeAttachmentTitle}
               >
-                Slet
+                {t.deleteTaskLabel.split(" ")[0]}
               </button>
             </div>
           ))}
-          {!task.attachments.length ? <div className="muted">Ingen vedhæftninger endnu.</div> : null}
+          {!task.attachments.length ? <div className="muted">{t.noAttachments}</div> : null}
         </div>
       </div>
 
       <div className="task-panel-footer">
-        <p className="eyebrow">Kommentarer</p>
+        <p className="eyebrow">{t.commentsSectionTitle}</p>
         <div className="stack">
           <textarea
             rows={2}
             value={commentText}
             onChange={(event) => onCommentTextChange(event.target.value)}
-            placeholder="Skriv en kommentar"
+            placeholder={t.commentPlaceholder}
           />
         </div>
         <div className="stack">
           {task.comments.map((comment) => (
             <div key={comment.id} className="comment-card">
               <strong>{comment.text}</strong>
-              <span>{new Date(comment.createdAt).toLocaleString("da-DK")}</span>
+              <span>
+                {new Date(comment.createdAt).toLocaleString(
+                  locale === "da" ? "da-DK" : "en-US",
+                )}
+              </span>
             </div>
           ))}
-          {!task.comments.length ? <div className="muted">Ingen kommentarer endnu.</div> : null}
+          {!task.comments.length ? <div className="muted">{t.noComments}</div> : null}
         </div>
       </div>
 
@@ -286,9 +292,9 @@ export function TaskDetailsPanel({
           className="ghost-button danger-button"
           onClick={onDelete}
           disabled={busy}
-            title="Slet denne opgave (kan ikke fortrydes)"
+          title={t.deleteTaskTitle}
         >
-          Slet opgave
+          {t.deleteTaskLabel}
         </button>
         <div>
           <button
@@ -296,11 +302,11 @@ export function TaskDetailsPanel({
             className="primary-button task-save-button"
             onClick={onSave}
             disabled={busy || !draft.title.trim() || !draft.projectSlug}
-              title="Gem ændringerne til opgaven"
+            title={t.saveTaskTitle}
           >
-            Gem opgave
+            {t.saveTaskLabel}
           </button>
-          {taskJustSaved && <p className="muted small">Opgaven er gemt.</p>}
+          {taskJustSaved && <p className="muted small">{t.taskSavedMessage}</p>}
         </div>
       </div>
     </aside>

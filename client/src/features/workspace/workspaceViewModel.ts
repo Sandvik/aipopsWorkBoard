@@ -1,5 +1,6 @@
 import type { ProjectRecord, TaskRecord } from "../../types";
 import { isOverdue } from "../tasks/taskUi";
+import { STRINGS, type Locale } from "../../i18n/locales";
 
 export type WorkspaceViewModel = {
   activeProjects: ProjectRecord[];
@@ -18,6 +19,12 @@ export type WorkspaceViewModel = {
     totalDoingTasks: number;
   };
 };
+
+function getCurrentLocale(): Locale {
+  if (typeof window === "undefined") return "en";
+  const stored = window.localStorage.getItem("aipops.locale") as Locale | null;
+  return stored === "da" || stored === "en" ? stored : "en";
+}
 
 export function buildWorkspaceViewModel(
   projects: ProjectRecord[],
@@ -49,6 +56,9 @@ export function buildWorkspaceViewModel(
       ? "Der er endnu ingen opgaver i dine aktive projekter."
       : `Aktive projekter: ${activeProjectSlugs.length} \u00b7 Opgaver i alt: ${totalActiveTasks} \u00b7 Backlog: ${totalBacklogTasks} \u00b7 Klar: ${totalTodoTasks} \u00b7 I gang: ${totalDoingTasks} \u00b7 Færdige: ${totalDoneTasks}`;
 
+  const strings = STRINGS[getCurrentLocale()];
+  const pt = strings.projectTooltips;
+
   const projectTooltips: Record<string, string> = {};
   const projectTaskCounts: Record<string, number> = {};
 
@@ -56,7 +66,7 @@ export function buildWorkspaceViewModel(
     const tasks = tasksByProject[project.slug] ?? [];
     projectTaskCounts[project.slug] = tasks.length;
     if (!tasks.length) {
-      projectTooltips[project.slug] = "Ingen opgaver endnu i dette projekt.";
+      projectTooltips[project.slug] = pt.empty;
       return;
     }
     const backlog = tasks.filter((task) => task.status === "backlog").length;
@@ -67,11 +77,20 @@ export function buildWorkspaceViewModel(
     const highPriority = tasks.filter(
       (task) => task.priority === "High" || task.priority === "Critical",
     ).length;
-    projectTooltips[project.slug] =
-      `Opgaver i alt: ${tasks.length} \u00b7 Backlog: ${backlog} \u00b7 Klar: ${todo} \u00b7 ` +
-      `I gang: ${doing} \u00b7 Færdige: ${done}` +
-      (overdue ? ` \u00b7 Forsinkede: ${overdue}` : "") +
-      (highPriority ? ` \u00b7 Høj prioritet: ${highPriority}` : "");
+    const parts = [
+      `${pt.prefixTotal}: ${tasks.length}`,
+      `${pt.labelBacklog}: ${backlog}`,
+      `${pt.labelTodo}: ${todo}`,
+      `${pt.labelDoing}: ${doing}`,
+      `${pt.labelDone}: ${done}`,
+    ];
+    if (overdue) {
+      parts.push(`${pt.labelOverdue}: ${overdue}`);
+    }
+    if (highPriority) {
+      parts.push(`${pt.labelHighPriority}: ${highPriority}`);
+    }
+    projectTooltips[project.slug] = parts.join(" \u00b7 ");
   });
 
   return {
