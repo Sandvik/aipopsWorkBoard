@@ -68,7 +68,7 @@ export function AiSettingsModal({
               onClick={onRemove}
               disabled={busy}
             >
-              Fjern AI-nøgle
+              Fjern nøgle
             </button>
           ) : null}
           <button
@@ -77,7 +77,7 @@ export function AiSettingsModal({
             onClick={onSkip}
             disabled={busy}
           >
-            {initialApiKey ? "Luk uden at ændre AI" : "Fortsæt uden AI"}
+            {initialApiKey ? "Luk" : "Spring over"}
           </button>
           <button
             type="button"
@@ -85,7 +85,7 @@ export function AiSettingsModal({
             onClick={() => onSave(value.trim() || null)}
             disabled={busy}
           >
-            {initialApiKey ? "Opdater AI-nøgle" : "Gem nøgle"}
+            {initialApiKey ? "Opdater nøgle" : "Gem nøgle"}
           </button>
         </div>
       </div>

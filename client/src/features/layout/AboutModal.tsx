@@ -38,7 +38,7 @@ export function AboutModal({ show, onClose, onOpenAiSettings }: AboutModalProps)
           {onOpenAiSettings ? (
             <button
               type="button"
-              className="secondary-button"
+              className="primary-button"
               onClick={() => {
                 onClose();
                 onOpenAiSettings();
@@ -49,7 +49,7 @@ export function AboutModal({ show, onClose, onOpenAiSettings }: AboutModalProps)
           ) : null}
           <button
             type="button"
-            className="primary-button"
+            className="secondary-button"
             onClick={onClose}
           >
             Luk
