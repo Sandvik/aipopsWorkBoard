@@ -1,11 +1,14 @@
+import type { ReactNode } from "react";
+
 // Genbrugelig bekræftelsesmodal, drevet af props fra App.
 type ConfirmModalProps = {
   title: string;
-  message: string;
+  message: ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   onCancel: () => void;
   onConfirm: () => Promise<void> | void;
+  className?: string;
 };
 
 export function ConfirmModal({
@@ -15,16 +18,17 @@ export function ConfirmModal({
   cancelLabel,
   onCancel,
   onConfirm,
+  className,
 }: ConfirmModalProps) {
   return (
     <div className="confirm-modal-backdrop">
-      <div className="confirm-modal">
+      <div className={`confirm-modal ${className ?? ""}`}>
         <h2>{title}</h2>
         <p>{message}</p>
         <div className="confirm-modal-actions">
           <button
             type="button"
-            className="ghost-button"
+            className="secondary-button"
             onClick={onCancel}
           >
             {cancelLabel ?? "Annuller"}

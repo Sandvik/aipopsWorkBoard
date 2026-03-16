@@ -59,6 +59,7 @@ export default function App() {
     cancelLabel?: string;
     onConfirm: () => void | Promise<void>;
   } | null>(null);
+  const [showDataHelp, setShowDataHelp] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const [isMobileLike, setIsMobileLike] = useState(false);
@@ -484,6 +485,47 @@ export default function App() {
         />
       ) : null}
 
+      {showDataHelp ? (
+        <ConfirmModal
+          title="Hvordan gemmes og flyttes dine data?"
+          className="confirm-modal-large"
+          message={
+            <>
+              <p>
+                AIPOPS Workboard gemmer alle projekter og opgaver som almindelige filer i den
+                arbejdsmappe, du har valgt. Der er ingen skjult database eller server.
+              </p>
+              <ul>
+                <li>
+                  <strong>Skifte mappe på samme PC:</strong> Kopiér/ flyt hele arbejds­mappen til et
+                  nyt sted, og klik derefter på &quot;Skift mappe&quot; i sidebaren og peg på den
+                  nye placering.
+                </li>
+                <li>
+                  <strong>Ny computer:</strong> Kopiér arbejds­mappen til den nye maskine (fx via
+                  USB, OneDrive eller Git), og vælg den derefter som arbejdsmappe i AIPOPS
+                  Workboard.
+                </li>
+                <li>
+                  <strong>Flere workspaces:</strong> Du kan have flere mapper (fx arbejde/privat) og
+                  skifte mellem dem med &quot;Skift mappe&quot;.
+                </li>
+              </ul>
+              <p>
+                Din AI‑nøgle gemmes også kun i arbejds­mappen. Flytter du mappen, følger
+                AI‑opsætningen med.
+              </p>
+            </>
+          }
+          cancelLabel="Luk"
+          confirmLabel="OK"
+          onCancel={() => setShowDataHelp(false)}
+          onConfirm={() => {
+            setShowDataHelp(false);
+          }}
+        />
+      ) : null}
+
       <SplitTasksModal
         open={showSplitModal}
         suggestions={splitSuggestions}
@@ -603,7 +645,10 @@ export default function App() {
         }}
       />
 
-      <AppFooter onShowAbout={() => setShowAbout(true)} />
+      <AppFooter
+        onShowAbout={() => setShowAbout(true)}
+        onShowDataHelp={() => setShowDataHelp(true)}
+      />
       <AboutModal
         show={showAbout}
         onClose={() => setShowAbout(false)}

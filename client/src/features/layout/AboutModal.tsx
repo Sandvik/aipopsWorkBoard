@@ -27,13 +27,10 @@ export function AboutModal({ show, onClose, onOpenAiSettings }: AboutModalProps)
           redigerer samme opgave samtidigt.
         </p>
         <p className="about-p">
-          Hvis du vil bruge samme board på flere computere, kan du gøre det på en enkel måde:
+          Hvis du har lyst, kan du også tilføje din egen OpenAI API-nøgle. Så kan AIPOPS hjælpe med at foreslå titler,
+          beskrivelser og delopgaver ud fra dine mails og noter. AI-delen er valgfri, og dine opgaver gemmes stadig kun
+          som filer i din arbejdsmappe.
         </p>
-        <ul className="about-list">
-          <li>Kopier hele arbejds­mappen (fx med USB eller et delt drev) til den nye computer.</li>
-          <li>Åbn AIPOPS Workboard dér og vælg den kopierede mappe som arbejdsmappe.</li>
-          <li>Alternativt kan du lægge arbejds­mappen i en synkroniseret mappe som OneDrive, Dropbox eller iCloud.</li>
-        </ul>
         <div className="about-actions">
           {onOpenAiSettings ? (
             <button
