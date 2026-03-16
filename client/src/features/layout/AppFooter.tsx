@@ -12,21 +12,19 @@ export function AppFooter({ onShowAbout, onShowDataHelp }: AppFooterProps) {
           <button
             type="button"
             className="app-footer-link"
+            onClick={onShowAbout}
+          >
+            Om AIPOPS Workboard
+          </button>
+          <button
+            type="button"
+            className="app-footer-link"
             onClick={onShowDataHelp}
           >
             Data og flytning
           </button>
         </div>
         <div className="app-footer-right">
-          <nav className="app-footer-links" aria-label="Footer links">
-            <button
-              type="button"
-              className="app-footer-link"
-              onClick={onShowAbout}
-            >
-              Om AIPOPS
-            </button>
-          </nav>
           <div className="app-footer-meta">
             <span className="app-footer-meta-text">
               © {new Date().getFullYear()}{" "}

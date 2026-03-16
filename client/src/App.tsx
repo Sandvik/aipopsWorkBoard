@@ -489,6 +489,7 @@ export default function App() {
         <ConfirmModal
           title="Hvordan gemmes og flyttes dine data?"
           className="confirm-modal-large"
+          showCancel={false}
           message={
             <>
               <p>
@@ -503,7 +504,7 @@ export default function App() {
                 </li>
                 <li>
                   <strong>Ny computer:</strong> Kopiér arbejds­mappen til den nye maskine (fx via
-                  USB, OneDrive eller Git), og vælg den derefter som arbejdsmappe i AIPOPS
+                  USB, OneDrive eller andre steder), og vælg den derefter som arbejdsmappe i AIPOPS
                   Workboard.
                 </li>
                 <li>
@@ -517,7 +518,6 @@ export default function App() {
               </p>
             </>
           }
-          cancelLabel="Luk"
           confirmLabel="OK"
           onCancel={() => setShowDataHelp(false)}
           onConfirm={() => {
