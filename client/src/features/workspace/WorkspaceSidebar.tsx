@@ -195,7 +195,57 @@ export function WorkspaceSidebar({
             </div>
           </div>
         </>
-      ) : null}
+      ) : (
+        <div className="sidebar-ghost" aria-hidden="true">
+          <div className="workspace-card">
+            <div className="workspace-card-header">
+              <p className="eyebrow">Din arbejdsmappe</p>
+              <div className="workspace-folder-chip">
+                <span className="workspace-folder-strip" aria-hidden="true" />
+                <p className="workspace-name">Eksempel-mappe</p>
+              </div>
+            </div>
+            <div className="workspace-card-actions">
+              <div className="workspace-actions">
+                <button type="button" className="primary-button" disabled>
+                  Vælg mappe
+                </button>
+                <button type="button" className="secondary-button" disabled>
+                  Opdater
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="workspace-card projects-card">
+            <div className="projects-head-main">
+              <p className="eyebrow">Dine projekter</p>
+            </div>
+            <button type="button" className="primary-button new-project-button" disabled>
+              + Nyt projekt
+            </button>
+            <button type="button" className="secondary-button morning-brief-button" disabled>
+              ✨ Brief
+            </button>
+
+            <div className="project-list">
+              <p className="project-section-label">Aktive projekter</p>
+              <div className="project-list-item project-list-item-skeleton">
+                <span className="project-list-strip project-list-strip-active" aria-hidden="true" />
+                <span className="project-list-text">
+                  <span className="project-list-name">Projekt A (eksempel)</span>
+                </span>
+              </div>
+              <div className="project-list-item project-list-item-skeleton">
+                <span className="project-list-strip project-list-strip-active" aria-hidden="true" />
+                <span className="project-list-text">
+                  <span className="project-list-name">Projekt B (eksempel)</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   );
 }
