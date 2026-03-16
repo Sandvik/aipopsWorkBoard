@@ -1,5 +1,10 @@
 export type Locale = "da" | "en";
 
+type DateStrings = {
+  dateLocale: string;
+  noDeadlineLabel: string;
+};
+
 type ToolbarStrings = {
   searchPlaceholder: string;
   themeToggleLight: string;
@@ -205,6 +210,7 @@ export type UiStrings = {
   board: BoardStrings;
   workspaceAlerts: WorkspaceAlertsStrings;
   projectTooltips: ProjectTooltipStrings;
+  date: DateStrings;
 };
 
 export const STRINGS: Record<Locale, UiStrings> = {
@@ -415,6 +421,10 @@ export const STRINGS: Record<Locale, UiStrings> = {
       labelOverdue: "Forsinkede",
       labelHighPriority: "Høj prioritet",
     },
+    date: {
+      dateLocale: "da-DK",
+      noDeadlineLabel: "Ingen frist",
+    },
   },
   en: {
     toolbar: {
@@ -623,6 +633,10 @@ export const STRINGS: Record<Locale, UiStrings> = {
       labelDone: "Done",
       labelOverdue: "Overdue",
       labelHighPriority: "High priority",
+    },
+    date: {
+      dateLocale: "en-US",
+      noDeadlineLabel: "No due date",
     },
   },
 };
