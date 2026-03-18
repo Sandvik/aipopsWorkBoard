@@ -16,6 +16,16 @@ export interface CommentRecord {
   createdAt: string;
 }
 
+export interface NoteRecord {
+  id: string;
+  title: string;
+  body: string;
+  color: "yellow" | "orange" | "green" | "blue" | "pink" | "gray";
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface TaskRecord {
   id: string;
   title: string;

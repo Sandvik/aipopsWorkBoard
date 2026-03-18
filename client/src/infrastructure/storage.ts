@@ -5,6 +5,7 @@ import type {
   AttachmentRecord,
   CommentRecord,
   ProjectRecord,
+  NoteRecord,
   TaskPriority,
   TaskRecord,
   TaskStatus,
@@ -30,6 +31,9 @@ type WorkspaceHandle = FileSystemDirectoryHandle;
 // Let konfigurationsfil i roden af arbejds­mappen. Bruges bl.a. til AI-indstillinger,
 // så brugeren kan gemme egne nøgler og præferencer sammen med sine data.
 const CONFIG_FILE_NAME = "aipops.config.json";
+
+// Workspace-level noter (Sticky Notes-agtige) gemmes som en enkel fil i roden af arbejds­mappen.
+const NOTES_FILE_NAME = "aipops.notes.json";
 
 export type AppConfig = {
   ai?: {
@@ -163,6 +167,34 @@ export async function loadConfig(workspace: WorkspaceHandle): Promise<AppConfig 
 // Skriver konfigurationsfilen til roden af arbejds­mappen.
 export async function saveConfig(workspace: WorkspaceHandle, config: AppConfig): Promise<void> {
   await writeJsonFile(workspace, CONFIG_FILE_NAME, config);
+}
+
+export type NotesFile = {
+  version: 1;
+  notes: NoteRecord[];
+};
+
+export async function loadNotes(workspace: WorkspaceHandle): Promise<NotesFile | null> {
+  try {
+    if (!(await fileExists(workspace, NOTES_FILE_NAME))) {
+      return null;
+    }
+    const loaded = await readJsonFile<NotesFile>(workspace, NOTES_FILE_NAME);
+    if (!loaded || loaded.version !== 1 || !Array.isArray(loaded.notes)) {
+      return null;
+    }
+    return loaded;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveNotes(workspace: WorkspaceHandle, notes: NoteRecord[]): Promise<void> {
+  const payload: NotesFile = {
+    version: 1,
+    notes,
+  };
+  await writeJsonFile(workspace, NOTES_FILE_NAME, payload);
 }
 
 async function copyFileHandleToDirectory(

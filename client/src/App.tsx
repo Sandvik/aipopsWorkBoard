@@ -2,8 +2,16 @@
 // Denne komponent samler kun hooks og UI-komponenter – selve domænelogikken
 // ligger i feature-hooks (tasks, projekter, workspace, async-feedback).
 import { useEffect, useRef, useState } from "react";
-import type { ProjectRecord, TaskRecord, TaskStatus } from "./types";
-import { loadConfig, pickWorkspaceDirectory, saveConfig, createTask, updateTask } from "./infrastructure/storage";
+import type { NoteRecord, ProjectRecord, TaskRecord, TaskStatus } from "./types";
+import {
+  loadConfig,
+  loadNotes,
+  pickWorkspaceDirectory,
+  saveConfig,
+  saveNotes,
+  createTask,
+  updateTask,
+} from "./infrastructure/storage";
 import { SplitTasksModal } from "./features/tasks/SplitTasksModal";
 import { EMPTY_DRAFT, PanelDraft, isOverdue } from "./features/tasks/taskUi";
 import { useTaskFilters } from "./features/tasks/useTaskFilters";
@@ -25,6 +33,7 @@ import { useAiFeatures } from "./features/layout/useAiFeatures";
 import { WorkspaceShell } from "./features/layout/WorkspaceShell";
 import { buildWorkspaceViewModel } from "./features/workspace/workspaceViewModel";
 import { LocaleProvider, useStrings } from "./i18n";
+import { NotesModal } from "./features/notes/NotesModal";
 
 type WorkspaceHandle = FileSystemDirectoryHandle | null;
 
@@ -66,6 +75,11 @@ function AppInner() {
   const [isMobileLike, setIsMobileLike] = useState(false);
   const [aiApiKey, setAiApiKey] = useState<string | null>(null);
   const [showAiSetup, setShowAiSetup] = useState(false);
+  const [notes, setNotes] = useState<NoteRecord[]>([]);
+  const [showNotes, setShowNotes] = useState(false);
+  const [notesSaving, setNotesSaving] = useState(false);
+  const notesLoadedRef = useRef(false);
+  const notesSaveTimerRef = useRef<number | null>(null);
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
     try {
@@ -127,6 +141,8 @@ function AppInner() {
     void (async () => {
       if (!workspace) {
         setAiApiKey(null);
+        setNotes([]);
+        notesLoadedRef.current = false;
         return;
       }
       const config = await loadConfig(workspace);
@@ -137,8 +153,39 @@ function AppInner() {
       if (!nextKey && !config?.ai?.seenSetup) {
         setShowAiSetup(true);
       }
+
+      const loadedNotes = await loadNotes(workspace);
+      setNotes(loadedNotes?.notes ?? []);
+      notesLoadedRef.current = true;
     })();
   }, [workspace]);
+
+  // Autosave noter som en fil i workspace-roden (debounced).
+  useEffect(() => {
+    if (!workspace) return;
+    if (!notesLoadedRef.current) return;
+    if (notesSaveTimerRef.current) {
+      window.clearTimeout(notesSaveTimerRef.current);
+    }
+    notesSaveTimerRef.current = window.setTimeout(() => {
+      void (async () => {
+        try {
+          setNotesSaving(true);
+          await saveNotes(workspace, notes);
+        } catch (caught) {
+          console.error("Kunne ikke gemme noter", caught);
+          setError("Kunne ikke gemme noter. Tjek at arbejdsmappe-adgang stadig er tilladt.");
+        } finally {
+          setNotesSaving(false);
+        }
+      })();
+    }, 800);
+    return () => {
+      if (notesSaveTimerRef.current) {
+        window.clearTimeout(notesSaveTimerRef.current);
+      }
+    };
+  }, [notes, workspace, setError]);
 
   // Loader projekter + tasks fra filsystemet og opdaterer hele view-modellen
   // via den fælles loadAllDataModel-helper.
@@ -456,6 +503,7 @@ function AppInner() {
         onAttachmentOpen={(id) => void handleAttachmentOpen(id)}
         onAttachmentDelete={(id) => void handleAttachmentDelete(id)}
         onShowMorningBrief={() => handleMorningBrief(() => setShowAiSetup(true))}
+        onShowNotes={() => setShowNotes(true)}
         onPickWorkspace={() => void handlePickWorkspace()}
         onRefreshData={() => void handleRefreshData()}
         onCreateProject={() => setShowNewProjectModal(true)}
@@ -576,6 +624,15 @@ function AppInner() {
         open={showMorningBrief}
         brief={morningBrief}
         onClose={() => setShowMorningBrief(false)}
+      />
+
+        <NotesModal
+        open={showNotes}
+        busy={busy}
+        saving={notesSaving}
+        notes={notes}
+        onClose={() => setShowNotes(false)}
+        onChangeNotes={(next) => setNotes(next)}
       />
 
         <AiSettingsModal

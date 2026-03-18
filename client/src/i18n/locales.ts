@@ -64,6 +64,8 @@ type SidebarStrings = {
   newProjectCancelLabel: string;
   briefButton: string;
   briefTooltip: string;
+  notesButton: string;
+  notesTooltip: string;
   noProjects: string;
   switchFolderButton: string;
   refreshButton: string;
@@ -198,6 +200,34 @@ type ProjectTooltipStrings = {
   labelHighPriority: string;
 };
 
+type NotesStrings = {
+  title: string;
+  subtitle: string;
+  closeLabel: string;
+  newNoteLabel: string;
+  newNoteTitle: string;
+  savingLabel: string;
+  savedLabel: string;
+  emptyLabel: string;
+  listAriaLabel: string;
+  emptyListHint: string;
+  emptyEditorHint: string;
+  untitledLabel: string;
+  pinnedTitle: string;
+  pinLabel: string;
+  unpinLabel: string;
+  pinTitle: string;
+  unpinTitle: string;
+  colorLabel: string;
+  colorNames: Record<"yellow" | "orange" | "green" | "blue" | "pink" | "gray", string>;
+  deleteLabel: string;
+  deleteTitle: string;
+  noteTitleLabel: string;
+  noteTitlePlaceholder: string;
+  noteBodyLabel: string;
+  noteBodyPlaceholder: string;
+};
+
 export type UiStrings = {
   toolbar: ToolbarStrings;
   sidebar: SidebarStrings;
@@ -211,6 +241,7 @@ export type UiStrings = {
   workspaceAlerts: WorkspaceAlertsStrings;
   projectTooltips: ProjectTooltipStrings;
   date: DateStrings;
+  notes: NotesStrings;
 };
 
 export const STRINGS: Record<Locale, UiStrings> = {
@@ -277,6 +308,8 @@ export const STRINGS: Record<Locale, UiStrings> = {
       newProjectCancelLabel: "Annuller",
       briefButton: "✨ Brief",
       briefTooltip: "Få et kort morgen-overblik uden at åbne alle mails først",
+      notesButton: "📝 Noter",
+      notesTooltip: "Sticky Notes-agtige noter, der gemmes i arbejds­mappen",
       noProjects: "Ingen aktive projekter endnu. Start med ét – flere skal nok selv melde sig.",
       switchFolderButton: "Skift mappe",
       refreshButton: "Opdater",
@@ -425,6 +458,40 @@ export const STRINGS: Record<Locale, UiStrings> = {
       dateLocale: "da-DK",
       noDeadlineLabel: "Ingen frist",
     },
+    notes: {
+      title: "Noter",
+      subtitle: "Små post-its til ting, du lige skal huske – uden at de hører til en opgave.",
+      closeLabel: "Luk",
+      newNoteLabel: "+ Ny note",
+      newNoteTitle: "Opret en ny sticky note",
+      savingLabel: "Gemmer…",
+      savedLabel: "Gemt",
+      emptyLabel: "Ingen noter endnu",
+      listAriaLabel: "Liste over noter",
+      emptyListHint: "Ingen noter endnu. Opret en ny, når du får en tanke.",
+      emptyEditorHint: "Vælg en note i listen, eller opret en ny.",
+      untitledLabel: "Uden titel",
+      pinnedTitle: "Fastgjort",
+      pinLabel: "Fastgør",
+      unpinLabel: "Løsn",
+      pinTitle: "Fastgør denne note øverst",
+      unpinTitle: "Fjern fastgørelse",
+      colorLabel: "Farve",
+      colorNames: {
+        yellow: "Gul",
+        orange: "Orange",
+        green: "Grøn",
+        blue: "Blå",
+        pink: "Pink",
+        gray: "Grå",
+      },
+      deleteLabel: "Slet",
+      deleteTitle: "Slet denne note",
+      noteTitleLabel: "Titel",
+      noteTitlePlaceholder: "Kort titel (valgfri)",
+      noteBodyLabel: "Note",
+      noteBodyPlaceholder: "Skriv din note her…",
+    },
   },
   en: {
     toolbar: {
@@ -489,6 +556,8 @@ export const STRINGS: Record<Locale, UiStrings> = {
       newProjectCancelLabel: "Cancel",
       briefButton: "✨ Brief",
       briefTooltip: "Get a quick morning overview without opening every email first",
+      notesButton: "📝 Notes",
+      notesTooltip: "Sticky-note style notes stored in your workspace folder",
       noProjects:
         "No active projects yet. Start with one – more will show up on their own soon enough.",
       switchFolderButton: "Switch folder",
@@ -637,6 +706,40 @@ export const STRINGS: Record<Locale, UiStrings> = {
     date: {
       dateLocale: "en-US",
       noDeadlineLabel: "No due date",
+    },
+    notes: {
+      title: "Notes",
+      subtitle: "Small sticky notes for things you need to remember – not tied to tasks or projects.",
+      closeLabel: "Close",
+      newNoteLabel: "+ New note",
+      newNoteTitle: "Create a new sticky note",
+      savingLabel: "Saving…",
+      savedLabel: "Saved",
+      emptyLabel: "No notes yet",
+      listAriaLabel: "Notes list",
+      emptyListHint: "No notes yet. Create one when a thought pops up.",
+      emptyEditorHint: "Select a note from the list, or create a new one.",
+      untitledLabel: "Untitled",
+      pinnedTitle: "Pinned",
+      pinLabel: "Pin",
+      unpinLabel: "Unpin",
+      pinTitle: "Pin this note to the top",
+      unpinTitle: "Remove pin",
+      colorLabel: "Color",
+      colorNames: {
+        yellow: "Yellow",
+        orange: "Orange",
+        green: "Green",
+        blue: "Blue",
+        pink: "Pink",
+        gray: "Gray",
+      },
+      deleteLabel: "Delete",
+      deleteTitle: "Delete this note",
+      noteTitleLabel: "Title",
+      noteTitlePlaceholder: "Short title (optional)",
+      noteBodyLabel: "Note",
+      noteBodyPlaceholder: "Write your note here…",
     },
   },
 };

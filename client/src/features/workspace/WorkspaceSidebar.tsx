@@ -21,6 +21,7 @@ type WorkspaceSidebarProps = {
   projectTooltips: Record<string, string>;
   projectTaskCounts: Record<string, number>;
   onShowMorningBrief: () => void;
+  onShowNotes: () => void;
   onPickWorkspace: () => void;
   onRefreshData: () => void;
   onCreateProject: () => void;
@@ -41,6 +42,7 @@ export function WorkspaceSidebar({
   projectTooltips,
   projectTaskCounts,
   onShowMorningBrief,
+  onShowNotes,
   onPickWorkspace,
   onRefreshData,
   onCreateProject,
@@ -115,6 +117,15 @@ export function WorkspaceSidebar({
               title={t.briefTooltip}
             >
               {t.briefButton}
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={onShowNotes}
+              disabled={busy || !hasWorkspace}
+              title={t.notesTooltip}
+            >
+              {t.notesButton}
             </button>
 
             <div className="project-list">

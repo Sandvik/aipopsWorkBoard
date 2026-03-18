@@ -92,6 +92,7 @@ type WorkspaceShellProps = {
   onAttachmentDelete: (id: string) => void;
   // Sidebar callbacks
   onShowMorningBrief: () => void;
+  onShowNotes: () => void;
   onPickWorkspace: () => void;
   onRefreshData: () => void;
   onCreateProject: () => void;
@@ -175,6 +176,7 @@ export function WorkspaceShell({
   onAttachmentOpen,
   onAttachmentDelete,
   onShowMorningBrief,
+  onShowNotes,
   onPickWorkspace,
   onRefreshData,
   onCreateProject,
@@ -207,6 +209,7 @@ export function WorkspaceShell({
           projectTooltips={projectTooltips}
           projectTaskCounts={projectTaskCounts}
           onShowMorningBrief={onShowMorningBrief}
+          onShowNotes={onShowNotes}
           onPickWorkspace={onPickWorkspace}
           onRefreshData={onRefreshData}
           onCreateProject={onCreateProject}
