@@ -2146,6 +2146,12 @@ body.theme-dark .project-task-count-badge {
   border: 1px solid rgba(148, 163, 184, 0.4);
 }
 
+body.theme-dark .filter-panel {
+  background: rgba(15, 23, 42, 0.92);
+  border-color: rgba(55, 65, 81, 0.8);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.7);
+}
+
 .filter-badge {
   margin-left: 0.35rem;
   color: #22c55e;
