@@ -83,18 +83,21 @@ export function useAiFeatures({
     workspace.activeProjects.forEach((project) => {
       const tasks = workspace.tasksByProject[project.slug] ?? [];
       if (!tasks.length) return;
+      const openTasks = tasks.filter((task) => task.status !== "done");
       const backlog = tasks.filter((task) => task.status === "backlog").length;
       const todo = tasks.filter((task) => task.status === "todo").length;
       const doing = tasks.filter((task) => task.status === "doing").length;
       const done = tasks.filter((task) => task.status === "done").length;
-      const overdue = tasks.filter((task) => task.deadline && new Date(task.deadline) < today).length;
-      const highPriority = tasks.filter(
+      const overdue = openTasks.filter(
+        (task) => task.deadline && new Date(task.deadline) < today,
+      ).length;
+      const highPriority = openTasks.filter(
         (task) => task.priority === "High" || task.priority === "Critical",
       ).length;
       lines.push(
         `Projekt: ${project.name} – Opgaver i alt: ${tasks.length}, Backlog: ${backlog}, Klar: ${todo}, I gang: ${doing}, Færdige: ${done}, Forsinkede: ${overdue}, Høj prioritet: ${highPriority}`,
       );
-      const importantTasks = tasks
+      const importantTasks = openTasks
         .filter(
           (task) =>
             (task.deadline && new Date(task.deadline) < today) ||
