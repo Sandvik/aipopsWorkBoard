@@ -43,6 +43,10 @@ export type AppConfig = {
     // for denne arbejdsmappe, selvom der ikke er angivet nogen nøgle.
     seenSetup?: boolean;
   };
+  notifications?: {
+    enabled?: boolean;
+    reminderMinutes?: number;
+  };
 };
 
 const encoder = new TextEncoder();

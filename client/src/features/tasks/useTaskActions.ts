@@ -7,6 +7,7 @@ import { useEffect, useMemo } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import type { ProjectRecord, TaskRecord, TaskStatus } from "../../types";
 import type { PanelDraft } from "./taskUi";
+import { normalizeDeadlineForInput } from "./taskUi";
 import {
   addAttachment,
   addComment,
@@ -111,7 +112,7 @@ export function useTaskActions({
       title: selectedTask.title,
       description: selectedTask.description,
       assignee: selectedTask.assignee,
-      deadline: selectedTask.deadline ?? "",
+      deadline: normalizeDeadlineForInput(selectedTask.deadline),
       priority: selectedTask.priority,
       projectSlug: selectedTask.projectSlug,
       status: selectedTask.status,

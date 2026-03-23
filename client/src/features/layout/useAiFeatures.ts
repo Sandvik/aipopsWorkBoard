@@ -11,6 +11,7 @@ import {
   type SplitTaskSuggestion,
 } from "../../infrastructure/aiClient";
 import { looksLikeMailOrChat, ensureNonEmptyText } from "../tasks/aiHelpers";
+import { parseDeadline } from "../tasks/taskUi";
 
 type WorkspaceAiContext = {
   projects: ProjectRecord[];
@@ -116,7 +117,18 @@ export function useAiFeatures({
                 ? "I gang"
                 : "Færdig";
         const deadlineText = task.deadline
-          ? `, frist: ${new Date(task.deadline).toLocaleDateString("da-DK")}`
+          ? `, frist: ${(() => {
+              const parsed = parseDeadline(task.deadline);
+              return parsed
+                ? parsed.toLocaleString("da-DK", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : task.deadline;
+            })()}`
           : "";
         lines.push(`- [${statusLabel}] ${task.title}${deadlineText}`);
       });

@@ -13,7 +13,7 @@ import {
   updateTask,
 } from "./infrastructure/storage";
 import { SplitTasksModal } from "./features/tasks/SplitTasksModal";
-import { EMPTY_DRAFT, PanelDraft, isOverdue } from "./features/tasks/taskUi";
+import { EMPTY_DRAFT, PanelDraft, isOverdue, parseDeadline } from "./features/tasks/taskUi";
 import { useTaskFilters } from "./features/tasks/useTaskFilters";
 import { useTaskActions } from "./features/tasks/useTaskActions";
 import { NewProjectModal } from "./features/workspace/NewProjectModal";
@@ -29,6 +29,7 @@ import { AboutModal } from "./features/layout/AboutModal";
 import { useAsyncFeedback } from "./features/layout/useAsyncFeedback";
 import { AiSettingsModal } from "./features/layout/AiSettingsModal";
 import { MorningBriefModal } from "./features/layout/MorningBriefModal";
+import { NotificationSettingsModal } from "./features/layout/NotificationSettingsModal";
 import { useAiFeatures } from "./features/layout/useAiFeatures";
 import { WorkspaceShell } from "./features/layout/WorkspaceShell";
 import { buildWorkspaceViewModel } from "./features/workspace/workspaceViewModel";
@@ -75,11 +76,15 @@ function AppInner() {
   const [isMobileLike, setIsMobileLike] = useState(false);
   const [aiApiKey, setAiApiKey] = useState<string | null>(null);
   const [showAiSetup, setShowAiSetup] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [deadlineReminderMinutes, setDeadlineReminderMinutes] = useState(30);
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const [notes, setNotes] = useState<NoteRecord[]>([]);
   const [showNotes, setShowNotes] = useState(false);
   const [notesSaving, setNotesSaving] = useState(false);
   const notesLoadedRef = useRef(false);
   const notesSaveTimerRef = useRef<number | null>(null);
+  const deadlineNotificationsRef = useRef<Set<string>>(new Set());
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
     try {
@@ -141,6 +146,8 @@ function AppInner() {
     void (async () => {
       if (!workspace) {
         setAiApiKey(null);
+        setNotificationsEnabled(true);
+        setDeadlineReminderMinutes(30);
         setNotes([]);
         notesLoadedRef.current = false;
         return;
@@ -148,6 +155,8 @@ function AppInner() {
       const config = await loadConfig(workspace);
       const nextKey = config?.ai?.apiKey ?? null;
       setAiApiKey(nextKey);
+      setNotificationsEnabled(config?.notifications?.enabled ?? true);
+      setDeadlineReminderMinutes(config?.notifications?.reminderMinutes ?? 30);
       // Hvis der ikke er nogen nøgle og brugeren ikke tidligere er blevet præsenteret
       // for AI-opsætning for denne arbejdsmappe, viser vi en lille wizard.
       if (!nextKey && !config?.ai?.seenSetup) {
@@ -224,10 +233,15 @@ function AppInner() {
   } = useTaskFilters({ tasksByProject, selectedProjectSlug });
 
   const totalVisibleTasks = visibleTasks.length;
-  const overdueVisibleTasks = visibleTasks.filter((task) => isOverdue(task.deadline)).length;
+  const overdueVisibleTasks = visibleTasks.filter(
+    (task) => task.status !== "done" && isOverdue(task.deadline),
+  ).length;
   const todayLabel = new Date().toDateString();
   const dueTodayVisibleTasks = visibleTasks.filter(
-    (task) => task.deadline && new Date(task.deadline).toDateString() === todayLabel,
+    (task) => {
+      const parsed = parseDeadline(task.deadline);
+      return Boolean(parsed && parsed.toDateString() === todayLabel);
+    },
   ).length;
   const doingVisibleTasks = visibleTasks.filter((task) => task.status === "doing").length;
    const doneVisibleTasks = visibleTasks.filter((task) => task.status === "done").length;
@@ -341,6 +355,90 @@ function AppInner() {
     return () => window.clearTimeout(timerId);
   }, [taskJustSaved]);
 
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof Notification === "undefined") return;
+    if (!workspace) return;
+    if (!notificationsEnabled) return;
+    if (Notification.permission !== "default") return;
+
+    void Notification.requestPermission();
+  }, [workspace, notificationsEnabled]);
+
+  useEffect(() => {
+    deadlineNotificationsRef.current.clear();
+  }, [notificationsEnabled, deadlineReminderMinutes]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof Notification === "undefined") return;
+    if (!notificationsEnabled) return;
+    if (Notification.permission !== "granted") return;
+
+    const seen = deadlineNotificationsRef.current;
+    const now = Date.now();
+    const allTasks = Object.values(tasksByProject).flat();
+    const activeTasks = allTasks.filter((task) => task.status !== "done" && task.deadline);
+    for (const task of activeTasks) {
+      const parsed = parseDeadline(task.deadline);
+      if (!parsed) continue;
+      const dueMs = parsed.getTime();
+      const minsLeft = Math.floor((dueMs - now) / 60000);
+      const notifySoonKey = `${task.id}:soon`;
+      const notifyOverdueKey = `${task.id}:overdue`;
+
+      if (minsLeft >= 0 && minsLeft <= deadlineReminderMinutes && !seen.has(notifySoonKey)) {
+        const title = minsLeft <= 0 ? "Deadline nu" : `Deadline om ${minsLeft} min`;
+        new Notification(title, {
+          body: task.title,
+          tag: notifySoonKey,
+        });
+        seen.add(notifySoonKey);
+      }
+
+      if (dueMs < now && !seen.has(notifyOverdueKey)) {
+        new Notification("Deadline overskredet", {
+          body: task.title,
+          tag: notifyOverdueKey,
+        });
+        seen.add(notifyOverdueKey);
+      }
+    }
+
+    const intervalId = window.setInterval(() => {
+      if (Notification.permission !== "granted") return;
+      const currentNow = Date.now();
+      const currentTasks = Object.values(tasksByProject)
+        .flat()
+        .filter((task) => task.status !== "done" && task.deadline);
+      for (const task of currentTasks) {
+        const parsed = parseDeadline(task.deadline);
+        if (!parsed) continue;
+        const dueMs = parsed.getTime();
+        const minsLeft = Math.floor((dueMs - currentNow) / 60000);
+        const notifySoonKey = `${task.id}:soon`;
+        const notifyOverdueKey = `${task.id}:overdue`;
+
+        if (minsLeft >= 0 && minsLeft <= deadlineReminderMinutes && !seen.has(notifySoonKey)) {
+          const title = minsLeft <= 0 ? "Deadline nu" : `Deadline om ${minsLeft} min`;
+          new Notification(title, {
+            body: task.title,
+            tag: notifySoonKey,
+          });
+          seen.add(notifySoonKey);
+        }
+
+        if (dueMs < currentNow && !seen.has(notifyOverdueKey)) {
+          new Notification("Deadline overskredet", {
+            body: task.title,
+            tag: notifyOverdueKey,
+          });
+          seen.add(notifyOverdueKey);
+        }
+      }
+    }, 60_000);
+
+    return () => window.clearInterval(intervalId);
+  }, [tasksByProject, notificationsEnabled, deadlineReminderMinutes]);
+
   const {
     aiBusy,
     morningBrief,
@@ -442,6 +540,9 @@ function AppInner() {
         isCreatingTask={isCreatingTask}
         theme={theme}
         onToggleTheme={() => setTheme((current) => (current === "light" ? "dark" : "light"))}
+        notificationsEnabled={notificationsEnabled}
+        reminderMinutes={deadlineReminderMinutes}
+        onOpenNotificationSettings={() => setShowNotificationSettings(true)}
         totalVisibleTasks={totalVisibleTasks}
         overdueVisibleTasks={overdueVisibleTasks}
         dueTodayVisibleTasks={dueTodayVisibleTasks}
@@ -679,6 +780,31 @@ function AppInner() {
             },
           });
           setAiApiKey(nextKey);
+        }}
+      />
+
+        <NotificationSettingsModal
+        open={showNotificationSettings}
+        busy={busy}
+        initialEnabled={notificationsEnabled}
+        initialReminderMinutes={deadlineReminderMinutes}
+        onClose={() => setShowNotificationSettings(false)}
+        onSave={async ({ enabled, reminderMinutes }) => {
+          setShowNotificationSettings(false);
+          if (!workspace) return;
+          const existing = (await loadConfig(workspace)) ?? {};
+          await saveConfig(workspace, {
+            ...existing,
+            notifications: {
+              enabled,
+              reminderMinutes,
+            },
+          });
+          setNotificationsEnabled(enabled);
+          setDeadlineReminderMinutes(reminderMinutes);
+          if (enabled && typeof Notification !== "undefined" && Notification.permission === "default") {
+            await Notification.requestPermission();
+          }
         }}
       />
 

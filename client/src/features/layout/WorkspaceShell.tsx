@@ -46,6 +46,9 @@ type WorkspaceShellProps = {
   isCreatingTask: boolean;
   theme: "light" | "dark";
   onToggleTheme: () => void;
+  notificationsEnabled: boolean;
+  reminderMinutes: number;
+  onOpenNotificationSettings: () => void;
   totalVisibleTasks: number;
   overdueVisibleTasks: number;
   dueTodayVisibleTasks: number;
@@ -133,6 +136,9 @@ export function WorkspaceShell({
   isCreatingTask,
   theme,
   onToggleTheme,
+  notificationsEnabled,
+  reminderMinutes,
+  onOpenNotificationSettings,
   totalVisibleTasks,
   overdueVisibleTasks,
   dueTodayVisibleTasks,
@@ -240,6 +246,9 @@ export function WorkspaceShell({
                   busy={busy}
                   theme={theme}
                   onToggleTheme={onToggleTheme}
+                  notificationsEnabled={notificationsEnabled}
+                  reminderMinutes={reminderMinutes}
+                  onOpenNotificationSettings={onOpenNotificationSettings}
                   totalVisibleTasks={totalVisibleTasks}
                   overdueVisibleTasks={overdueVisibleTasks}
                   dueTodayVisibleTasks={dueTodayVisibleTasks}

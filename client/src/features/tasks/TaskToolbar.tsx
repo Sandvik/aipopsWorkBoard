@@ -26,6 +26,9 @@ type TaskToolbarProps = {
   busy: boolean;
   theme: "light" | "dark";
   onToggleTheme: () => void;
+  notificationsEnabled: boolean;
+  reminderMinutes: number;
+  onOpenNotificationSettings: () => void;
   totalVisibleTasks: number;
   overdueVisibleTasks: number;
   dueTodayVisibleTasks: number;
@@ -69,6 +72,9 @@ export function TaskToolbar({
   busy,
   theme,
   onToggleTheme,
+  notificationsEnabled,
+  reminderMinutes,
+  onOpenNotificationSettings,
   totalVisibleTasks,
   overdueVisibleTasks,
   dueTodayVisibleTasks,
@@ -171,6 +177,14 @@ export function TaskToolbar({
             title={filtersActive ? t.filtersOn : t.filtersOff}
           >
             <span className="filter-chip-label">{t.filtersLabel}</span>
+          </button>
+          <button
+            type="button"
+            className="ghost-button"
+            onClick={onOpenNotificationSettings}
+            title="Aabn notifikationsindstillinger"
+          >
+            {notificationsEnabled ? `🔔 ${reminderMinutes}m` : "🔕"}
           </button>
           <button
             type="button"

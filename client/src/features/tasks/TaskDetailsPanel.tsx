@@ -156,7 +156,8 @@ export function TaskDetailsPanel({
           <label>
             {t.deadlineLabel}
             <input
-              type="date"
+              type="datetime-local"
+              step={60}
               value={draft.deadline}
               onChange={(event) =>
                 onDraftChange({

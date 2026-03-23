@@ -43,6 +43,39 @@ export const EMPTY_DRAFT: PanelDraft = {
   status: "backlog",
 };
 
+function isDateOnlyValue(value: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function toLocalDateTimeInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+export function normalizeDeadlineForInput(value: string | null) {
+  if (!value) return "";
+  if (isDateOnlyValue(value)) {
+    return `${value}T09:00`;
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return toLocalDateTimeInputValue(parsed);
+}
+
+export function parseDeadline(value: string | null) {
+  if (!value) return null;
+  if (isDateOnlyValue(value)) {
+    const parsed = new Date(`${value}T00:00`);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
 function getCurrentLocaleForDate(): Locale {
   if (typeof window === "undefined") return "en";
   const stored = window.localStorage.getItem("aipops.locale") as Locale | null;
@@ -54,11 +87,31 @@ export function formatDate(value: string | null) {
   const dateLocale = date?.dateLocale ?? "da-DK";
   const noDeadlineLabel = date?.noDeadlineLabel ?? "Ingen frist";
   if (!value) return noDeadlineLabel;
-  return new Date(value).toLocaleDateString(dateLocale);
+  const parsed = parseDeadline(value);
+  if (!parsed) return noDeadlineLabel;
+  if (isDateOnlyValue(value)) {
+    return parsed.toLocaleDateString(dateLocale);
+  }
+  return parsed.toLocaleString(dateLocale, {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 // Bruges til at style deadlines, der ligger før dags dato, som "forfaldne".
 export function isOverdue(value: string | null) {
-  return Boolean(value && new Date(value) < new Date(new Date().toDateString()));
+  if (!value) return false;
+  const parsed = parseDeadline(value);
+  if (!parsed) return false;
+  const now = new Date();
+  if (isDateOnlyValue(value)) {
+    const dayEnd = new Date(parsed);
+    dayEnd.setHours(23, 59, 59, 999);
+    return now > dayEnd;
+  }
+  return now > parsed;
 }
 
