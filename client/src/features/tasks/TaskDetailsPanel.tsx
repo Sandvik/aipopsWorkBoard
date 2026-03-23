@@ -6,6 +6,7 @@ import type { ProjectRecord, TaskRecord, TaskPriority, TaskStatus } from "../../
 import type { PanelDraft } from "./taskUi";
 import { PRIORITY_LABELS } from "./taskUi";
 import { useLocale, useStrings } from "../../i18n";
+import { parseDeadline } from "./taskUi";
 
 type TaskDetailsPanelProps = {
   // Den fulde task der redigeres.
@@ -69,6 +70,31 @@ export function TaskDetailsPanel({
 }: TaskDetailsPanelProps) {
   const { taskPanel: t } = useStrings();
   const { locale } = useLocale();
+
+  function getDeadlineDateTimeInputValues(value: string) {
+    const parsed = parseDeadline(value);
+    if (!parsed) return { date: "", time: "" };
+    const year = parsed.getFullYear();
+    const month = String(parsed.getMonth() + 1).padStart(2, "0");
+    const day = String(parsed.getDate()).padStart(2, "0");
+    const hours = String(parsed.getHours()).padStart(2, "0");
+    const minutes = String(parsed.getMinutes()).padStart(2, "0");
+    return {
+      date: `${year}-${month}-${day}`,
+      time: `${hours}:${minutes}`,
+    };
+  }
+
+  const { date: deadlineDate, time: deadlineTime } = getDeadlineDateTimeInputValues(
+    draft.deadline,
+  );
+
+  function combineDeadlineFromInputs(nextDate: string, nextTime: string) {
+    if (!nextDate) return "";
+    const time = nextTime || "09:00";
+    return `${nextDate}T${time}`;
+  }
+
   return (
     <aside className="task-panel">
       <div className="row between">
@@ -155,17 +181,30 @@ export function TaskDetailsPanel({
           </label>
           <label>
             {t.deadlineLabel}
-            <input
-              type="datetime-local"
-              step={60}
-              value={draft.deadline}
-              onChange={(event) =>
-                onDraftChange({
-                  ...draft,
-                  deadline: event.target.value,
-                })
-              }
-            />
+            <div className="deadline-datetime-inputs">
+              <input
+                type="date"
+                value={deadlineDate}
+                onChange={(event) =>
+                  onDraftChange({
+                    ...draft,
+                    deadline: combineDeadlineFromInputs(event.target.value, deadlineTime),
+                  })
+                }
+              />
+              <input
+                type="time"
+                step={60}
+                value={deadlineTime}
+                disabled={!deadlineDate}
+                onChange={(event) =>
+                  onDraftChange({
+                    ...draft,
+                    deadline: combineDeadlineFromInputs(deadlineDate, event.target.value),
+                  })
+                }
+              />
+            </div>
           </label>
           <label>
             {t.priorityLabel}
