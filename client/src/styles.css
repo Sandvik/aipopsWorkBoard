@@ -253,15 +253,15 @@ body.theme-dark .task-panel-actions .muted.small {
 }
 
 .app-header-toolbar {
-  margin-top: 0.6rem;
+  margin-top: 0.15rem;
   display: grid;
-  gap: 0.4rem;
+  gap: 0.2rem;
 }
 
 .app-shell {
   display: grid;
   grid-template-columns: 13.5rem minmax(0, 1fr) 22rem;
-  min-height: calc(100vh - 5rem);
+  min-height: calc(100vh - 4.35rem);
 }
 
 .app-shell.without-task-panel {
@@ -1158,13 +1158,45 @@ body.theme-dark .toolbar-stat-chip-danger {
 
 .board-empty {
   grid-column: 1 / -1;
-  display: grid;
-  place-items: center;
-  padding: 2rem 1rem;
-  border-radius: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.0rem;
+  padding: 0 0 0 0;
+  border-radius: 0.5rem;
   border: 1px dashed rgba(148, 163, 184, 0.6);
   background: rgba(248, 250, 252, 0.7);
   text-align: center;
+}
+
+.board-empty p {
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.12;
+}
+
+.board-empty .muted.small {
+  margin-top: 0;
+  font-size: 0.78rem;
+  line-height: 1.12;
+}
+
+.board-empty .muted {
+  color: #334155;
+}
+
+body.theme-dark .board-empty {
+  background: rgba(30, 41, 59, 0.72);
+  border-color: rgba(148, 163, 184, 0.5);
+}
+
+body.theme-dark .board-empty p {
+  color: #f1f5f9;
+}
+
+body.theme-dark .board-empty .muted {
+  color: #cbd5e1;
 }
 
 .board-column {

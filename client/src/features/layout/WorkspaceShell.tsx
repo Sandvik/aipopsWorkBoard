@@ -279,12 +279,6 @@ export function WorkspaceShell({
                     onTaskSelect("");
                   }}
                 >
-                  {visibleTasks.length === 0 ? (
-                    <div className="board-empty">
-                      <p>{onboardingStrings.emptyBoardTitle}</p>
-                      <p className="muted small">{onboardingStrings.emptyBoardBody}</p>
-                    </div>
-                  ) : null}
                   <TaskBoard
                     tasks={visibleTasks}
                     projects={projects}
