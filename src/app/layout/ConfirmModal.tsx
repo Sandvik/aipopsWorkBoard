@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
+import { useLocale } from "../i18n";
+import { getTextCatalog } from "../i18n/catalog";
 
-// Genbrugelig bekræftelsesmodal, drevet af props fra App.
 type ConfirmModalProps = {
   title: string;
   message: ReactNode;
@@ -22,6 +23,9 @@ export function ConfirmModal({
   onConfirm,
   className,
 }: ConfirmModalProps) {
+  const { locale } = useLocale();
+  const defaults = getTextCatalog(locale).confirmModal;
+
   return (
     <div className="confirm-modal-backdrop">
       <div className={`confirm-modal ${className ?? ""}`}>
@@ -34,7 +38,7 @@ export function ConfirmModal({
               className="secondary-button"
               onClick={onCancel}
             >
-              {cancelLabel ?? "Annuller"}
+              {cancelLabel ?? defaults.cancel}
             </button>
           ) : null}
           <button
@@ -44,11 +48,10 @@ export function ConfirmModal({
               await onConfirm();
             }}
           >
-            {confirmLabel ?? "OK"}
+            {confirmLabel ?? defaults.confirm}
           </button>
         </div>
       </div>
     </div>
   );
 }
-

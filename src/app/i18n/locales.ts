@@ -1,4 +1,4 @@
-export type Locale = "da" | "en";
+﻿export type Locale = "da" | "en";
 
 type DateStrings = {
   dateLocale: string;
@@ -6,6 +6,14 @@ type DateStrings = {
 };
 
 type ToolbarStrings = {
+  themeToggleAriaLight: string;
+  themeToggleAriaDark: string;
+  notificationSettingsTitle: string;
+  resetShort: string;
+  aiSplitBusy: string;
+  aiSplitIdle: string;
+  aiBusy: string;
+  noProjectsButtonLabel: string;
   searchPlaceholder: string;
   themeToggleLight: string;
   themeToggleDark: string;
@@ -145,6 +153,13 @@ type WorkspaceAlertsStrings = {
 };
 
 type TaskPanelStrings = {
+  titleLabel: string;
+  aiSplitTitle: string;
+  aiSplitBusy: string;
+  aiSplitIdle: string;
+  aiHelpTitle: string;
+  aiHelpBusy: string;
+  deleteAttachmentShort: string;
   title: string;
   closeLabel: string;
   closeTitle: string;
@@ -201,6 +216,58 @@ type ProjectTooltipStrings = {
   labelHighPriority: string;
 };
 
+type ProjectActionStrings = {
+  created: string;
+  saved: string;
+  deleteTitle: string;
+  deleteMessage: string;
+  deleteLabel: string;
+  cancel: string;
+  deleted: string;
+};
+type TaskActionStrings = {
+  chooseProjectAndTitle: string;
+  titleAndProjectRequired: string;
+  created: string;
+  attachmentSaved: string;
+  deleteAttachmentTitle: string;
+  deleteAttachmentMessage: string;
+  deleteFile: string;
+  cancel: string;
+  attachmentDeleted: string;
+  deleteTaskTitle: string;
+  deleteTaskMessage: string;
+  deleteTask: string;
+  taskDeleted: string;
+};
+type AiFlowStrings = {
+  generatingBrief: string;
+  date: string;
+  project: string;
+  tasksTotal: string;
+  backlog: string;
+  todo: string;
+  doing: string;
+  done: string;
+  overdue: string;
+  highPriority: string;
+  deadline: string;
+  needTitleOrText: string;
+  couldNotOptimizeTitle: string;
+  addDescriptionText: string;
+  noTasksFound: string;
+};
+type AppStrings = {
+  saveNotesError: string;
+  chooseWorkspaceFirst: string;
+  deadlineNow: string;
+  deadlineIn: string;
+  deadlineOverdue: string;
+  aiCleanMail: string;
+  aiHelpDescription: string;
+  splitCreatedDone: string;
+  splitCreated: string;
+};
 type NotesStrings = {
   title: string;
   subtitle: string;
@@ -230,6 +297,10 @@ type NotesStrings = {
 };
 
 export type UiStrings = {
+  projectActions: ProjectActionStrings;
+  taskActions: TaskActionStrings;
+  aiFlow: AiFlowStrings;
+  app: AppStrings;
   toolbar: ToolbarStrings;
   sidebar: SidebarStrings;
   onboarding: OnboardingStrings;
@@ -247,6 +318,58 @@ export type UiStrings = {
 
 export const STRINGS: Record<Locale, UiStrings> = {
   da: {
+    projectActions: {
+      created: "Projekt oprettet.",
+      saved: "Projekt gemt.",
+      deleteTitle: "Slet projekt",
+      deleteMessage: "Er du sikker på, at du vil slette projektet \"{name}\"? Alle opgaver i projektet bliver også slettet.",
+      deleteLabel: "Slet projekt",
+      cancel: "Annuller",
+      deleted: "Projekt slettet.",
+    },
+    taskActions: {
+      chooseProjectAndTitle: "Vælg projekt og skriv en titel.",
+      titleAndProjectRequired: "Titel og projekt er påkrævet.",
+      created: "Opgave oprettet.",
+      attachmentSaved: "Vedhæftning gemt.",
+      deleteAttachmentTitle: "Slet vedhæftning",
+      deleteAttachmentMessage: "Vil du slette filen \"{name}\" fra denne opgave?",
+      deleteFile: "Slet fil",
+      cancel: "Annuller",
+      attachmentDeleted: "Vedhæftning slettet.",
+      deleteTaskTitle: "Slet opgave",
+      deleteTaskMessage: "Er du sikker på, at du vil slette opgaven \"{name}\"?",
+      deleteTask: "Slet opgave",
+      taskDeleted: "Opgave slettet.",
+    },
+    aiFlow: {
+      generatingBrief: "Genererer brief...",
+      date: "Dato",
+      project: "Projekt",
+      tasksTotal: "Opgaver i alt",
+      backlog: "Backlog",
+      todo: "Klar",
+      doing: "I gang",
+      done: "Færdige",
+      overdue: "Forsinkede",
+      highPriority: "Høj prioritet",
+      deadline: "frist",
+      needTitleOrText: "Skriv mindst en titel eller lidt tekst først.",
+      couldNotOptimizeTitle: "Kunne ikke optimere titel",
+      addDescriptionText: "Tilføj lidt tekst i beskrivelsen først.",
+      noTasksFound: "Jeg kunne ikke finde tydelige opgaver i teksten. Prøv at gøre teksten lidt kortere.",
+    },
+    app: {
+      saveNotesError: "Kunne ikke gemme noter. Tjek at arbejdsmappe-adgang stadig er tilladt.",
+      chooseWorkspaceFirst: "Vælg en arbejdsmappe først.",
+      deadlineNow: "Deadline nu",
+      deadlineIn: "Deadline om {count} min",
+      deadlineOverdue: "Deadline overskredet",
+      aiCleanMail: "Ryd op fra mail/Teams",
+      aiHelpDescription: "Hjælp til beskrivelse",
+      splitCreatedDone: "{count} opgave{plural} oprettet, og den oprindelige opgave er markeret som færdig.",
+      splitCreated: "{count} opgave{plural} oprettet ud fra teksten.",
+    },
     toolbar: {
       searchPlaceholder: "Søg...",
       themeToggleLight: "Skift til mørkt, hvis skærmen larmer",
@@ -307,10 +430,10 @@ export const STRINGS: Record<Locale, UiStrings> = {
       newProjectPlaceholder: "F.eks. Kundeprojekter, Personlige opgaver …",
       newProjectCreateLabel: "Opret projekt",
       newProjectCancelLabel: "Annuller",
-      briefButton: "✨ Brief",
+      briefButton: "Brief",
       briefTooltip: "Få et kort morgen-overblik uden at åbne alle mails først",
-      notesButton: "📝 Noter",
-      notesTooltip: "Sticky Notes-agtige noter, der gemmes i arbejds­mappen",
+      notesButton: "Noter",
+      notesTooltip: "Sticky Notes-agtige noter, der gemmes i arbejdsmappen",
       noProjects: "Ingen aktive projekter endnu. Start med ét – flere skal nok selv melde sig.",
       switchFolderButton: "Skift mappe",
       refreshButton: "Opdater",
@@ -496,6 +619,58 @@ export const STRINGS: Record<Locale, UiStrings> = {
     },
   },
   en: {
+    projectActions: {
+      created: "Project created.",
+      saved: "Project saved.",
+      deleteTitle: "Delete project",
+      deleteMessage: "Are you sure you want to delete the project \"{name}\"? All tasks in the project will also be deleted.",
+      deleteLabel: "Delete project",
+      cancel: "Cancel",
+      deleted: "Project deleted.",
+    },
+    taskActions: {
+      chooseProjectAndTitle: "Choose a project and enter a title.",
+      titleAndProjectRequired: "Title and project are required.",
+      created: "Task created.",
+      attachmentSaved: "Attachment saved.",
+      deleteAttachmentTitle: "Delete attachment",
+      deleteAttachmentMessage: "Do you want to delete the file \"{name}\" from this task?",
+      deleteFile: "Delete file",
+      cancel: "Cancel",
+      attachmentDeleted: "Attachment deleted.",
+      deleteTaskTitle: "Delete task",
+      deleteTaskMessage: "Are you sure you want to delete the task \"{name}\"?",
+      deleteTask: "Delete task",
+      taskDeleted: "Task deleted.",
+    },
+    aiFlow: {
+      generatingBrief: "Generating brief...",
+      date: "Date",
+      project: "Project",
+      tasksTotal: "Tasks total",
+      backlog: "Backlog",
+      todo: "Ready",
+      doing: "Doing",
+      done: "Done",
+      overdue: "Overdue",
+      highPriority: "High priority",
+      deadline: "deadline",
+      needTitleOrText: "Write at least a title or a bit of text first.",
+      couldNotOptimizeTitle: "Could not optimize title",
+      addDescriptionText: "Add some text to the description first.",
+      noTasksFound: "I could not find clear tasks in the text. Try making it a bit shorter.",
+    },
+    app: {
+      saveNotesError: "Could not save notes. Check that workspace access is still allowed.",
+      chooseWorkspaceFirst: "Choose a workspace first.",
+      deadlineNow: "Deadline now",
+      deadlineIn: "Deadline in {count} min",
+      deadlineOverdue: "Deadline overdue",
+      aiCleanMail: "AI clean up from email/chat",
+      aiHelpDescription: "Help with description",
+      splitCreatedDone: "{count} task{plural} created, and the original task was marked as done.",
+      splitCreated: "{count} task{plural} created from the text.",
+    },
     toolbar: {
       searchPlaceholder: "Search",
       themeToggleLight: "Switch to dark if the screen is shouting at you",
@@ -556,9 +731,9 @@ export const STRINGS: Record<Locale, UiStrings> = {
       newProjectPlaceholder: "E.g. Client projects, Personal tasks …",
       newProjectCreateLabel: "Create project",
       newProjectCancelLabel: "Cancel",
-      briefButton: "✨ Brief",
+      briefButton: "Brief",
       briefTooltip: "Get a quick morning overview without opening every email first",
-      notesButton: "📝 Notes",
+      notesButton: "Notes",
       notesTooltip: "Sticky-note style notes stored in your workspace folder",
       noProjects:
         "No active projects yet. Start with one – more will show up on their own soon enough.",
@@ -746,3 +921,4 @@ export const STRINGS: Record<Locale, UiStrings> = {
     },
   },
 };
+

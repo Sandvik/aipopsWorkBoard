@@ -1,7 +1,4 @@
-// Hook der samler al workspace-relateret logik:
-// - valg og skift af arbejdsmappe
-// - refresh af data fra den nuværende mappe
-// - håndtering af intro-tur ved første valg.
+﻿import { useStrings } from "../../app/i18n";
 
 type WorkspaceHandle = FileSystemDirectoryHandle | null;
 
@@ -52,6 +49,7 @@ export function useWorkspace({
   persistWorkspaceHandle,
   pickWorkspaceDirectory,
 }: UseWorkspaceArgs) {
+  const { workspaceAlerts: alerts } = useStrings();
   const hasWorkspace = Boolean(workspace);
 
   async function pickWorkspaceAndLoad() {
@@ -63,11 +61,11 @@ export function useWorkspace({
         if (caught instanceof DOMException && caught.name === "AbortError") {
           return;
         }
-        if (caught instanceof Error && caught.message.includes("understøtter ikke mappeadgang")) {
+        if (caught instanceof Error && caught.message.includes("support") || caught.message.includes("understøtter")) {
           setConfirmState({
-            title: "Din browser mangler mappeadgang",
+            title: alerts.browserNoAccessTitle,
             message: caught.message,
-            confirmLabel: "OK",
+            confirmLabel: alerts.browserNoAccessConfirm,
             onConfirm: () => {
               setConfirmState(null);
             },
@@ -80,7 +78,7 @@ export function useWorkspace({
       setWorkspaceName(handle.name);
       await persistWorkspaceHandle(handle);
       await loadAllData(handle);
-      setMessage("Arbejdsmappe valgt.");
+      setMessage(alerts.pickedWorkspaceMessage);
       if (startTourAfterWorkspace) {
         setShowTour(true);
         setTourStep(1);
@@ -92,18 +90,17 @@ export function useWorkspace({
     const handle = await requireWorkspace();
     await runAction(
       () => loadAllData(handle, selectedProjectSlug || undefined, selectedTaskId || null),
-      "Data opdateret.",
+      alerts.refreshSuccessMessage,
     );
   }
 
   async function handlePickWorkspace() {
     if (workspace) {
       setConfirmState({
-        title: "Skift arbejdsmappe",
-        message:
-          "Når du skifter arbejdsmappe, ser du kun projekter og opgaver fra den nye mappe. De gamle data bliver liggende i den tidligere mappe.",
-        confirmLabel: "Skift arbejdsmappe",
-        cancelLabel: "Behold nuværende",
+        title: alerts.switchTitle,
+        message: alerts.switchMessage,
+        confirmLabel: alerts.switchConfirmLabel,
+        cancelLabel: alerts.switchCancelLabel,
         onConfirm: async () => {
           await pickWorkspaceAndLoad();
           setConfirmState(null);

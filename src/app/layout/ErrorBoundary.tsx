@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { getStoredLocale, getTextCatalog } from "../i18n/catalog";
 
 type ErrorBoundaryProps = {
   children: ReactNode;
@@ -16,19 +17,18 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // eslint-disable-next-line no-console
     console.error("Unhandled error in UI", error, info);
   }
 
   render() {
+    const t = getTextCatalog(getStoredLocale()).errorBoundary;
+
     if (this.state.hasError) {
       return (
         <div className="empty-main">
           <div className="empty-main-card">
-            <h2>Noget gik galt i visningen</h2>
-            <p className="muted">
-              Prøv at genindlæse siden. Hvis fejlen bliver ved, kan du lukke og åbne arbejds­mappen igen.
-            </p>
+            <h2>{t.title}</h2>
+            <p className="muted">{t.body}</p>
           </div>
         </div>
       );
@@ -37,4 +37,3 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return this.props.children;
   }
 }
-

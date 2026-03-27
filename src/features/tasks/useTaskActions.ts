@@ -1,9 +1,4 @@
-// Hook der samler al task-relateret domænelogik:
-// - valgt opgave (selectedTask)
-// - synkronisering af panelDraft
-// - opret/gem/slet/flyt opgaver
-// - vedhæftninger og kommentarer.
-import { useEffect, useMemo } from "react";
+﻿import { useEffect, useMemo } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import type { ProjectRecord, TaskRecord, TaskStatus } from "../../types";
 import type { PanelDraft } from "./taskUi";
@@ -19,6 +14,7 @@ import {
   readAttachmentFile,
   updateTask,
 } from "../../infrastructure/storage";
+import { useStrings } from "../../app/i18n";
 
 type ConfirmState = {
   title: string;
@@ -89,6 +85,8 @@ export function useTaskActions({
   setSelectedTaskId,
   setConfirmState,
 }: UseTaskActionsArgs) {
+  const { taskActions: text } = useStrings();
+
   const selectedTask = useMemo(() => {
     const allTasks = Object.values(tasksByProject).flat();
     return allTasks.find((task) => task.id === selectedTaskId) ?? null;
@@ -122,7 +120,7 @@ export function useTaskActions({
     event.preventDefault();
     const targetProjectSlug = newTaskProjectSlug || selectedProjectSlug;
     if (!newTaskTitle.trim() || !targetProjectSlug) {
-      setError("Vælg projekt og skriv en titel.");
+      setError(text.chooseProjectAndTitle);
       return;
     }
     await runAction(async () => {
@@ -139,13 +137,13 @@ export function useTaskActions({
       setIsCreatingTask(false);
       resetFilters();
       await loadAllData(handle, targetProjectSlug, task.id);
-    }, "Opgave oprettet.");
+    }, text.created);
   }
 
   async function handleSaveTask() {
     if (!selectedTask) return;
     if (!panelDraft.title.trim() || !panelDraft.projectSlug) {
-      setError("Titel og projekt er påkrævet.");
+      setError(text.titleAndProjectRequired);
       return;
     }
     await runAction(async () => {
@@ -189,7 +187,7 @@ export function useTaskActions({
       const handle = await requireWorkspace();
       await addAttachment(handle, selectedTask.projectSlug, selectedTask.id, file);
       await loadAllData(handle, selectedTask.projectSlug, selectedTask.id);
-    }, "Vedhæftning gemt.");
+    }, text.attachmentSaved);
     event.target.value = "";
   }
 
@@ -212,16 +210,16 @@ export function useTaskActions({
     const attachment = task.attachments.find((entry) => entry.id === fileId);
     if (!attachment) return;
     setConfirmState({
-      title: "Slet vedhæftning",
-      message: `Vil du slette filen "${attachment.fileName}" fra denne opgave?`,
-      confirmLabel: "Slet fil",
-      cancelLabel: "Annuller",
+      title: text.deleteAttachmentTitle,
+      message: text.deleteAttachmentMessage.replace("{name}", attachment.fileName),
+      confirmLabel: text.deleteFile,
+      cancelLabel: text.cancel,
       onConfirm: async () => {
         await runAction(async () => {
           const handle = await requireWorkspace();
           await deleteAttachment(handle, task.projectSlug, task.id, fileId);
           await loadAllData(handle, task.projectSlug, task.id);
-        }, "Vedhæftning slettet.");
+        }, text.attachmentDeleted);
         setConfirmState(null);
       },
     });
@@ -231,17 +229,17 @@ export function useTaskActions({
     if (!selectedTask) return;
     const task = selectedTask;
     setConfirmState({
-      title: "Slet opgave",
-      message: `Er du sikker på, at du vil slette opgaven "${task.title}"?`,
-      confirmLabel: "Slet opgave",
-      cancelLabel: "Annuller",
+      title: text.deleteTaskTitle,
+      message: text.deleteTaskMessage.replace("{name}", task.title),
+      confirmLabel: text.deleteTask,
+      cancelLabel: text.cancel,
       onConfirm: async () => {
         await runAction(async () => {
           const handle = await requireWorkspace();
           await deleteTask(handle, task.projectSlug, task.id);
           await loadAllData(handle, task.projectSlug, null);
           setSelectedTaskId("");
-        }, "Opgave slettet.");
+        }, text.taskDeleted);
         setConfirmState(null);
       },
     });
@@ -279,4 +277,3 @@ export function useTaskActions({
     handleTaskDrop,
   };
 }
-

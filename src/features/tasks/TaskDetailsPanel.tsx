@@ -1,43 +1,24 @@
-// Præsentationskomponent for højre "Opgavedetaljer"-panel.
-// Alt domænelogik (gem/validering/flytte opgave) ligger i App –
-// her fokuserer vi på formularfelter og callbacks.
-import type { ChangeEvent } from "react";
+﻿import type { ChangeEvent } from "react";
 import type { ProjectRecord, TaskRecord, TaskPriority, TaskStatus } from "../../types";
 import type { PanelDraft } from "./taskUi";
-import { PRIORITY_LABELS } from "./taskUi";
+import { getPriorityLabels, parseDeadline } from "./taskUi";
 import { useLocale, useStrings } from "../../app/i18n";
-import { parseDeadline } from "./taskUi";
 
 type TaskDetailsPanelProps = {
-  // Den fulde task der redigeres.
   task: TaskRecord;
-  // Projekter til projekt-dropdown (filtreret i komponenten).
   projects: ProjectRecord[];
-  // Formular-udkast inde i panelet.
   draft: PanelDraft;
-  // Tekst til ny kommentar nederst.
   commentText: string;
-  // Busy-flag til at disable knapper under async handlinger.
   busy: boolean;
-  // Bruges til kort "Opgaven er gemt."-feedback.
   taskJustSaved: boolean;
-  // Lukkeknap øverst til højre.
   onClose: () => void;
-  // Når et felt i formularen ændres.
   onDraftChange: (draft: PanelDraft) => void;
-  // Når kommentar-tekst ændres.
   onCommentTextChange: (value: string) => void;
-  // Brugeren trykker "Gem opgave".
   onSave: () => void;
-  // Brugeren trykker "Slet opgave".
   onDelete: () => void;
-  // Vedhæftnings-input ændrer sig (fil valgt).
   onAttachmentChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  // Klik på en vedhæftet fil.
   onAttachmentOpen: (id: string) => void;
-  // Klik på "Slet" ved en vedhæftning.
   onAttachmentDelete: (id: string) => void;
-  // AI-hjælp (kaldes fra App, viser modal hvis der mangler nøgle).
   onAiSummarizeDescription: () => void;
   aiBusy: boolean;
   aiLabel: string;
@@ -68,8 +49,9 @@ export function TaskDetailsPanel({
   canSplitFromDescription,
   onSplitFromDescription,
 }: TaskDetailsPanelProps) {
-  const { taskPanel: t } = useStrings();
+  const { taskPanel: t, board } = useStrings();
   const { locale } = useLocale();
+  const priorityLabels = getPriorityLabels();
 
   function getDeadlineDateTimeInputValues(value: string) {
     const parsed = parseDeadline(value);
@@ -112,7 +94,7 @@ export function TaskDetailsPanel({
         <div className="stack">
           <label>
             <span className="field-label">
-              {t.descriptionLabel} <span className="required-mark">*</span>
+              {t.titleLabel} <span className="required-mark">*</span>
             </span>
             <input
               value={draft.title}
@@ -145,9 +127,9 @@ export function TaskDetailsPanel({
                 className="ghost-button"
                 onClick={onSplitFromDescription}
                 disabled={busy || aiBusy}
-                title="Lav flere konkrete opgaver ud fra den lange tekst i beskrivelsen"
+                title={t.aiSplitTitle}
               >
-                {aiBusy ? "Laver opgave-forslag…" : "Lav konkrete opgaver ud fra teksten"}
+                {aiBusy ? t.aiSplitBusy : t.aiSplitIdle}
               </button>
             ) : (
               <button
@@ -155,9 +137,9 @@ export function TaskDetailsPanel({
                 className="ghost-button"
                 onClick={onAiSummarizeDescription}
                 disabled={busy || aiBusy}
-                title="Få hjælp til at rydde op i teksten og gøre den mere konkret"
+                title={t.aiHelpTitle}
               >
-                {aiBusy ? "Arbejder med tekst…" : aiLabel}
+                {aiBusy ? t.aiHelpBusy : aiLabel}
               </button>
             )}
           </div>
@@ -217,7 +199,7 @@ export function TaskDetailsPanel({
                 })
               }
             >
-              {Object.entries(PRIORITY_LABELS).map(([value, label]) => (
+              {Object.entries(priorityLabels).map(([value, label]) => (
                 <option key={value} value={value}>
                   {label}
                 </option>
@@ -237,8 +219,7 @@ export function TaskDetailsPanel({
             >
               {(["backlog", "todo", "doing", "done"] as TaskStatus[]).map((status) => (
                 <option key={status} value={status}>
-                  {/** Board uses the same titles for columns and dropdown */}
-                  {useStrings().board.columnTitles[status]}
+                  {board.columnTitles[status]}
                 </option>
               ))}
             </select>
@@ -293,7 +274,7 @@ export function TaskDetailsPanel({
                 onClick={() => onAttachmentDelete(attachment.id)}
                 title={t.removeAttachmentTitle}
               >
-                {t.deleteTaskLabel.split(" ")[0]}
+                {t.deleteAttachmentShort}
               </button>
             </div>
           ))}
@@ -352,4 +333,3 @@ export function TaskDetailsPanel({
     </aside>
   );
 }
-

@@ -1,6 +1,5 @@
-// Hook til at håndtere busy/error/message-tilstand omkring asynkrone handlinger.
-// Giver et fælles runAction-mønster, så UI kan være simpelt.
 import { useState } from "react";
+import { getStoredTextCatalog } from "../i18n/catalog";
 
 export function useAsyncFeedback() {
   const [busy, setBusy] = useState(false);
@@ -14,7 +13,8 @@ export function useAsyncFeedback() {
       await action();
       if (successMessage) setMessage(successMessage);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Noget gik galt.");
+      const fallback = getStoredTextCatalog().asyncFeedback.fallbackError;
+      setError(caught instanceof Error ? caught.message : fallback);
     } finally {
       setBusy(false);
     }
@@ -29,4 +29,3 @@ export function useAsyncFeedback() {
     runAction,
   };
 }
-

@@ -1,12 +1,9 @@
-// Venstre sidebar med brand, arbejdsmappe-info og projektliste.
-// Alle side-effekter (valg af mappe, reload, slet projekt) håndteres via callbacks.
 import type { ProjectRecord } from "../../types";
-// Billedet ligger i src/assets, så Vite kan fingerprint'e det korrekt.
-// TypeScript kender ikke billed-typerne her som modul, så vi ignorerer typen lokalt.
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import sidebarImage from "../../assets/aipops-workboard-sidebar-transparent.png";
-import { useStrings } from "../../app/i18n";
+import { useLocale, useStrings } from "../../app/i18n";
+import { getTextCatalog } from "../../app/i18n/catalog";
 
 type WorkspaceSidebarProps = {
   hasWorkspace: boolean;
@@ -50,13 +47,16 @@ export function WorkspaceSidebar({
   onDeleteProject,
 }: WorkspaceSidebarProps) {
   const { sidebar: t } = useStrings();
+  const { locale } = useLocale();
+  const local = getTextCatalog(locale).workspaceGhost;
+
   return (
     <aside className="left-rail">
       <div className="app-brand">
         <img
           className="app-brand-image"
           src={sidebarImage}
-          alt="AIPOPS Workboard – ét roligt board til opgaver og projekter"
+          alt={local.brandAlt}
         />
       </div>
       {hasWorkspace ? (
@@ -67,10 +67,9 @@ export function WorkspaceSidebar({
               <div className="workspace-folder-chip" title={workspaceName || undefined}>
                 <span className="workspace-folder-strip" aria-hidden="true" />
                 <p className="workspace-name">
-                  {workspaceName || "Ingen mappe valgt"}
+                  {workspaceName || local.noFolderSelected}
                 </p>
-              </div>         
-             
+              </div>
             </div>
             <div className="workspace-card-actions">
               <div className="workspace-actions">
@@ -105,7 +104,7 @@ export function WorkspaceSidebar({
               className="primary-button new-project-button"
               disabled={busy || !hasWorkspace}
               onClick={onCreateProject}
-              title="Opret et nyt projekt i den valgte arbejdsmappe"
+              title={local.newProjectTitle}
             >
               {t.newProjectButton}
             </button>
@@ -129,7 +128,7 @@ export function WorkspaceSidebar({
             </button>
 
             <div className="project-list">
-              <p className="project-section-label">Aktive projekter</p>
+              <p className="project-section-label">{local.activeProjects}</p>
               {activeProjects.map((project) => (
                 <button
                   key={project.id}
@@ -153,13 +152,11 @@ export function WorkspaceSidebar({
                   </span>
                 </button>
               ))}
-              {!activeProjects.length ? (
-                <p className="muted small">{t.noProjects}</p>
-              ) : null}
+              {!activeProjects.length ? <p className="muted small">{t.noProjects}</p> : null}
 
               {archivedProjects.length ? (
                 <>
-                  <p className="project-section-label">Arkiverede projekter</p>
+                  <p className="project-section-label">{local.archivedProjects}</p>
                   {archivedProjects.map((project) => (
                     <button
                       key={project.id}
@@ -172,14 +169,14 @@ export function WorkspaceSidebar({
                     >
                       <span className="project-list-strip project-list-strip-archived" aria-hidden="true" />
                       <span className="project-list-text">
-                      <span className="project-list-name">
-                        {project.name}
-                        {typeof projectTaskCounts[project.slug] === "number" ? (
-                          <span className="project-task-count-badge">
-                            {projectTaskCounts[project.slug]}
-                          </span>
-                        ) : null}
-                      </span>
+                        <span className="project-list-name">
+                          {project.name}
+                          {typeof projectTaskCounts[project.slug] === "number" ? (
+                            <span className="project-task-count-badge">
+                              {projectTaskCounts[project.slug]}
+                            </span>
+                          ) : null}
+                        </span>
                       </span>
                     </button>
                   ))}
@@ -206,19 +203,19 @@ export function WorkspaceSidebar({
         <div className="sidebar-ghost" aria-hidden="true">
           <div className="workspace-card">
             <div className="workspace-card-header">
-              <p className="eyebrow">Din arbejdsmappe</p>
+              <p className="eyebrow">{t.yourWorkspace}</p>
               <div className="workspace-folder-chip">
                 <span className="workspace-folder-strip" aria-hidden="true" />
-                <p className="workspace-name">Eksempel-mappe</p>
+                <p className="workspace-name">{local.sampleWorkspace}</p>
               </div>
             </div>
             <div className="workspace-card-actions">
               <div className="workspace-actions">
                 <button type="button" className="primary-button" disabled>
-                  Vælg mappe
+                  {t.chooseWorkspace}
                 </button>
                 <button type="button" className="secondary-button" disabled>
-                  Opdater
+                  {t.refreshButton}
                 </button>
               </div>
             </div>
@@ -226,27 +223,27 @@ export function WorkspaceSidebar({
 
           <div className="workspace-card projects-card">
             <div className="projects-head-main">
-              <p className="eyebrow">Dine projekter</p>
+              <p className="eyebrow">{t.projectsHeader}</p>
             </div>
             <button type="button" className="primary-button new-project-button" disabled>
-              + Nyt projekt
+              {t.newProjectButton}
             </button>
             <button type="button" className="secondary-button morning-brief-button" disabled>
-              ✨ Brief
+              {t.briefButton}
             </button>
 
             <div className="project-list">
-              <p className="project-section-label">Aktive projekter</p>
+              <p className="project-section-label">{local.activeProjects}</p>
               <div className="project-list-item project-list-item-skeleton">
                 <span className="project-list-strip project-list-strip-active" aria-hidden="true" />
                 <span className="project-list-text">
-                  <span className="project-list-name">Projekt A (eksempel)</span>
+                  <span className="project-list-name">{local.sampleProjectA}</span>
                 </span>
               </div>
               <div className="project-list-item project-list-item-skeleton">
                 <span className="project-list-strip project-list-strip-active" aria-hidden="true" />
                 <span className="project-list-text">
-                  <span className="project-list-name">Projekt B (eksempel)</span>
+                  <span className="project-list-name">{local.sampleProjectB}</span>
                 </span>
               </div>
             </div>
@@ -256,4 +253,3 @@ export function WorkspaceSidebar({
     </aside>
   );
 }
-

@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useLocale } from "../i18n";
+import { getTextCatalog } from "../i18n/catalog";
 
 type NotificationSettingsModalProps = {
   open: boolean;
@@ -21,6 +23,8 @@ export function NotificationSettingsModal({
 }: NotificationSettingsModalProps) {
   const [enabled, setEnabled] = useState(initialEnabled);
   const [reminderMinutes, setReminderMinutes] = useState(initialReminderMinutes);
+  const { locale } = useLocale();
+  const t = getTextCatalog(locale).notificationSettings;
 
   useEffect(() => {
     if (!open) return;
@@ -33,22 +37,20 @@ export function NotificationSettingsModal({
   return (
     <div className="confirm-modal-backdrop">
       <div className="confirm-modal" role="dialog" aria-modal="true">
-        <h2>Notifikationer</h2>
-        <p className="muted small">
-          Faa browser-pamindelser for deadlines. Virker mens appen er aaben i browseren.
-        </p>
+        <h2>{t.title}</h2>
+        <p className="muted small">{t.intro}</p>
         <label>
-          <span className="field-label">Aktiver notifikationer</span>
+          <span className="field-label">{t.enabledLabel}</span>
           <select
             value={enabled ? "on" : "off"}
             onChange={(event) => setEnabled(event.target.value === "on")}
           >
-            <option value="on">Ja</option>
-            <option value="off">Nej</option>
+            <option value="on">{t.yes}</option>
+            <option value="off">{t.no}</option>
           </select>
         </label>
         <label>
-          <span className="field-label">Pamind mig</span>
+          <span className="field-label">{t.remindLabel}</span>
           <select
             value={String(reminderMinutes)}
             onChange={(event) => setReminderMinutes(Number(event.target.value) || 30)}
@@ -56,14 +58,14 @@ export function NotificationSettingsModal({
           >
             {REMINDER_OPTIONS.map((minutes) => (
               <option key={minutes} value={minutes}>
-                {minutes} minutter foer deadline
+                {t.minutesBefore.replace("{count}", String(minutes))}
               </option>
             ))}
           </select>
         </label>
         <div className="confirm-modal-actions">
           <button type="button" className="secondary-button" onClick={onClose} disabled={busy}>
-            Luk
+            {t.close}
           </button>
           <button
             type="button"
@@ -71,11 +73,10 @@ export function NotificationSettingsModal({
             onClick={() => onSave({ enabled, reminderMinutes })}
             disabled={busy}
           >
-            Gem
+            {t.save}
           </button>
         </div>
       </div>
     </div>
   );
 }
-

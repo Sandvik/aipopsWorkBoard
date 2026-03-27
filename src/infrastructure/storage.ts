@@ -1,7 +1,4 @@
-// Infrastruktur-lag for al lokal filhåndtering.
-// Denne modul gemmer og læser projekter/opgaver/vedhæftninger via File System Access API
-// i en fast mappe-struktur under den arbejdsmappe brugeren vælger.
-import type {
+﻿import type {
   AttachmentRecord,
   CommentRecord,
   ProjectRecord,
@@ -10,8 +7,8 @@ import type {
   TaskRecord,
   TaskStatus,
 } from "../types";
+import { getStoredTextCatalog } from "../app/i18n/catalog";
 
-// Udvid global Window-type, så TypeScript kender showDirectoryPicker,
 // som kun findes i Chromium-browsere.
 declare global {
   interface Window {
@@ -19,28 +16,25 @@ declare global {
   }
 }
 
-// Tilladte status-/prioritetsværdier og mappe-layout under arbejdsmappe.
 const STATUS_VALUES: TaskStatus[] = ["backlog", "todo", "doing", "done"];
 const PRIORITY_VALUES: TaskPriority[] = ["Low", "Medium", "High", "Critical"];
 const ROOT_DIR_NAME = "project-data";
 const PROJECTS_DIR_NAME = "projects";
 
-// En arbejdsmappe er roden, som brugeren vælger via showDirectoryPicker.
 type WorkspaceHandle = FileSystemDirectoryHandle;
 
-// Let konfigurationsfil i roden af arbejds­mappen. Bruges bl.a. til AI-indstillinger,
-// så brugeren kan gemme egne nøgler og præferencer sammen med sine data.
 const CONFIG_FILE_NAME = "aipops.config.json";
 
-// Workspace-level noter (Sticky Notes-agtige) gemmes som en enkel fil i roden af arbejds­mappen.
 const NOTES_FILE_NAME = "aipops.notes.json";
+
+function storageText() {
+  return getStoredTextCatalog().storage;
+}
 
 export type AppConfig = {
   ai?: {
     provider?: "openai";
     apiKey?: string;
-    // Markør der kan bruges til at huske, at brugeren allerede er blevet tilbudt AI-opsætning
-    // for denne arbejdsmappe, selvom der ikke er angivet nogen nøgle.
     seenSetup?: boolean;
   };
   notifications?: {
@@ -52,8 +46,6 @@ export type AppConfig = {
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-// Gør vilkårlige navne sikre at bruge som fil-/mappenavne.
-// Bruges til projekt-slugs, task-slugs og filnavne til vedhæftninger.
 function slugify(value: string) {
   return (
     value
@@ -65,8 +57,6 @@ function slugify(value: string) {
   );
 }
 
-// Sørger for at tasks, der læses fra disk, altid har gyldige felter
-// (fx hvis ældre filer mangler properties).
 function ensureTaskDefaults(task: TaskRecord): TaskRecord {
   return {
     ...task,
@@ -77,13 +67,11 @@ function ensureTaskDefaults(task: TaskRecord): TaskRecord {
   };
 }
 
-// Eksponeres for tests, så vi kan verificere normalisering uden
 // at skulle ramme filsystemet.
 export function normalizeTaskFromDisk(task: TaskRecord): TaskRecord {
   return ensureTaskDefaults(task);
 }
 
-// Læs/skriv JSON-filer i en given directory.
 async function readJsonFile<T>(dir: FileSystemDirectoryHandle, fileName: string): Promise<T> {
   const handle = await dir.getFileHandle(fileName);
   const file = await handle.getFile();
@@ -97,7 +85,6 @@ async function writeJsonFile(dir: FileSystemDirectoryHandle, fileName: string, d
   await writer.close();
 }
 
-// Gemmer vilkårlig binær data (bruges til vedhæftede filer).
 async function writeBinaryFile(dir: FileSystemDirectoryHandle, fileName: string, data: Blob | ArrayBuffer) {
   const handle = await dir.getFileHandle(fileName, { create: true });
   const writer = await handle.createWritable();
@@ -105,7 +92,6 @@ async function writeBinaryFile(dir: FileSystemDirectoryHandle, fileName: string,
   await writer.close();
 }
 
-// Wrapper om removeEntry så vi kan styre recursive-flaget fra ét sted.
 async function removeEntry(dir: FileSystemDirectoryHandle, name: string, recursive = false) {
   await dir.removeEntry(name, { recursive });
 }
@@ -131,7 +117,6 @@ async function getTasksDir(workspace: WorkspaceHandle, projectSlug: string, crea
   return projectDir.getDirectoryHandle("tasks", { create });
 }
 
-// Mappe for vedhæftninger:
 // <project-dir>/attachments/<task-id>/<filnavne>
 async function getAttachmentsDir(
   workspace: WorkspaceHandle,
@@ -155,7 +140,6 @@ async function fileExists(dir: FileSystemDirectoryHandle, fileName: string) {
   }
 }
 
-// Læser konfigurationsfilen fra roden af arbejds­mappen, hvis den findes.
 export async function loadConfig(workspace: WorkspaceHandle): Promise<AppConfig | null> {
   try {
     if (!(await fileExists(workspace, CONFIG_FILE_NAME))) {
@@ -163,12 +147,10 @@ export async function loadConfig(workspace: WorkspaceHandle): Promise<AppConfig 
     }
     return await readJsonFile<AppConfig>(workspace, CONFIG_FILE_NAME);
   } catch {
-    // En korrupt eller uventet config skal ikke vælte hele appen – vi behandler det som "ingen config".
     return null;
   }
 }
 
-// Skriver konfigurationsfilen til roden af arbejds­mappen.
 export async function saveConfig(workspace: WorkspaceHandle, config: AppConfig): Promise<void> {
   await writeJsonFile(workspace, CONFIG_FILE_NAME, config);
 }
@@ -212,7 +194,6 @@ async function copyFileHandleToDirectory(
 }
 
 // Rekursiv kopiering af en directory-struktur.
-// Bruges bl.a. når projekter omdøbes (og dermed får nyt slug).
 async function copyDirectory(source: FileSystemDirectoryHandle, target: FileSystemDirectoryHandle) {
   const anySource = source as any;
   if (typeof anySource.values === "function") {
@@ -245,7 +226,6 @@ function taskFileName(task: TaskRecord) {
   return `${task.slug}.json`;
 }
 
-// Gemmer en task til disk, og rydder op i den gamle fil hvis slug ændres.
 async function saveTask(workspace: WorkspaceHandle, task: TaskRecord, previousSlug?: string) {
   const tasksDir = await getTasksDir(workspace, task.projectSlug, true);
   if (previousSlug && previousSlug !== task.slug) {
@@ -271,7 +251,6 @@ async function listTaskFiles(tasksDir: FileSystemDirectoryHandle) {
   return entries;
 }
 
-// Læser alle gyldige projekter fra disk og sorterer dem alfabetisk.
 async function loadProjects(workspace: WorkspaceHandle) {
   const projectsRoot = await getProjectsRoot(workspace);
   const projects: ProjectRecord[] = [];
@@ -291,7 +270,6 @@ async function loadProjects(workspace: WorkspaceHandle) {
   return projects.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-// Læser alle tasks for et projekt, sikrer defaults og sorterer efter order/titel.
 async function loadTasks(workspace: WorkspaceHandle, projectSlug: string) {
   const tasksDir = await getTasksDir(workspace, projectSlug, true);
   const fileNames = await listTaskFiles(tasksDir);
@@ -305,12 +283,10 @@ async function loadTasks(workspace: WorkspaceHandle, projectSlug: string) {
 async function loadTaskById(workspace: WorkspaceHandle, projectSlug: string, taskId: string) {
   const tasks = await loadTasks(workspace, projectSlug);
   const task = tasks.find((entry) => entry.id === taskId);
-  if (!task) throw new Error("Opgaven blev ikke fundet.");
+  if (!task) throw new Error(storageText().taskNotFound);
   return task;
 }
 
-// Sørger for at projekter får unikke slugs selv ved navnekollisioner
-// (bruger timestamp-suffix i kollisionstilfælde).
 async function ensureUniqueProjectSlug(workspace: WorkspaceHandle, baseSlug: string, excludeSlug?: string) {
   const projects = await loadProjects(workspace);
   let slug = baseSlug;
@@ -320,7 +296,6 @@ async function ensureUniqueProjectSlug(workspace: WorkspaceHandle, baseSlug: str
   return slug;
 }
 
-// Sørger for at tasks i et projekt får unikke slugs, også når titler genbruges.
 async function ensureUniqueTaskSlug(
   workspace: WorkspaceHandle,
   projectSlug: string,
@@ -337,9 +312,7 @@ async function ensureUniqueTaskSlug(
 
 export async function pickWorkspaceDirectory() {
   if (!window.showDirectoryPicker) {
-    throw new Error(
-      "Din nuværende browser understøtter ikke mappeadgang. Prøv i stedet i Chrome, Edge, Brave eller en anden moderne browser baseret på Chromium."
-    );
+    throw new Error(storageText().browserNoAccess);
   }
   return window.showDirectoryPicker({ mode: "readwrite" });
 }
@@ -349,13 +322,12 @@ export async function listProjects(workspace: WorkspaceHandle) {
 }
 
 // Opretter et nyt projekt med unikt navn og slug
-// og initialiserer tilhørende tasks-/attachments-mapper.
 export async function createProject(workspace: WorkspaceHandle, input: { name: string; color?: string }) {
   const name = input.name.trim();
-  if (!name) throw new Error("Projektnavn er påkrævet.");
+  if (!name) throw new Error(storageText().projectNameRequired);
   const projects = await loadProjects(workspace);
   if (projects.some((project) => project.name.toLowerCase() === name.toLowerCase())) {
-    throw new Error("Projektnavn skal være unikt.");
+    throw new Error(storageText().projectNameUnique);
   }
 
   const slug = await ensureUniqueProjectSlug(workspace, slugify(name));
@@ -375,9 +347,6 @@ export async function createProject(workspace: WorkspaceHandle, input: { name: s
   return project;
 }
 
-// Opdaterer navn/farve/arkiveret-flag på et projekt.
-// Hvis navnet ændres, flytter vi hele projektmappen til ny slug
-// og opdaterer projectSlug på alle tilhørende tasks.
 export async function updateProject(
   workspace: WorkspaceHandle,
   currentSlug: string,
@@ -393,7 +362,7 @@ export async function updateProject(
       (entry) => entry.slug !== currentSlug && entry.name.toLowerCase() === nextName.toLowerCase(),
     )
   ) {
-    throw new Error("Projektnavn skal være unikt.");
+    throw new Error(storageText().projectNameUnique);
   }
 
   const nextSlug =
@@ -436,14 +405,13 @@ export async function listTasks(workspace: WorkspaceHandle, projectSlug: string)
 
 // Opretter en ny task i et projekt, med:
 // - unik slug inden for projektet,
-// - order-værdi der placerer den sidst i sin status-kolonne.
 export async function createTask(
   workspace: WorkspaceHandle,
   projectSlug: string,
   input: Partial<Pick<TaskRecord, "title" | "description" | "assignee" | "deadline" | "priority" | "status">>,
 ) {
   const title = input.title?.trim();
-  if (!title) throw new Error("Opgavetitel er påkrævet.");
+  if (!title) throw new Error(storageText().taskTitleRequired);
 
   const tasks = await loadTasks(workspace, projectSlug);
   const status = STATUS_VALUES.includes(input.status ?? "backlog")
@@ -475,9 +443,7 @@ export async function createTask(
   return task;
 }
 
-// Opdaterer en eksisterende task og sørger for:
 // - at titlen ikke bliver tom,
-// - at slug/order justeres korrekt når titel/status ændres.
 export async function updateTask(
   workspace: WorkspaceHandle,
   projectSlug: string,
@@ -486,7 +452,7 @@ export async function updateTask(
 ) {
   const task = await loadTaskById(workspace, projectSlug, taskId);
   if (input.title !== undefined && !input.title.trim()) {
-    throw new Error("Opgavetitel er påkrævet.");
+    throw new Error(storageText().taskTitleRequired);
   }
 
   const nextTitle = input.title?.trim() || task.title;
@@ -529,8 +495,6 @@ export async function updateTask(
   return updated;
 }
 
-// Flytter en task inden for samme projekt til en ny status + given rækkefølge.
-// Vi beregner nye order-værdier ud fra orderedTaskIds, så boardet kan gemme sortering.
 export async function moveTask(
   workspace: WorkspaceHandle,
   projectSlug: string,
@@ -539,7 +503,7 @@ export async function moveTask(
 ) {
   const tasks = await loadTasks(workspace, projectSlug);
   const task = tasks.find((entry) => entry.id === taskId);
-  if (!task) throw new Error("Opgaven blev ikke fundet.");
+  if (!task) throw new Error(storageText().taskNotFound);
 
   const targetIds = input.orderedTaskIds.filter((id) => tasks.some((entry) => entry.id === id));
   const nextIds = targetIds.includes(taskId) ? targetIds : [...targetIds, taskId];
@@ -563,9 +527,6 @@ export async function moveTask(
 }
 
 // Flytter en task til et andet projekt:
-// - beregner ny order i målprojektet,
-// - sørger for unik slug i målprojektet,
-// - flytter evt. vedhæftninger til ny attachments-mappe.
 export async function moveTaskToProject(
   workspace: WorkspaceHandle,
   projectSlug: string,
@@ -613,7 +574,6 @@ export async function moveTaskToProject(
   return movedTask;
 }
 
-// Sletter en task og dens vedhæftnings-mappe (hvis den findes).
 export async function deleteTask(
   workspace: WorkspaceHandle,
   projectSlug: string,
@@ -622,7 +582,7 @@ export async function deleteTask(
   const tasksDir = await getTasksDir(workspace, projectSlug);
   const tasks = await loadTasks(workspace, projectSlug);
   const task = tasks.find((entry) => entry.id === taskId);
-  if (!task) throw new Error("Opgaven blev ikke fundet.");
+  if (!task) throw new Error(storageText().taskNotFound);
 
   const fileName = `${task.slug}.json`;
   if (await fileExists(tasksDir, fileName)) {
@@ -633,11 +593,9 @@ export async function deleteTask(
     const attachmentsBase = await getAttachmentsDir(workspace, projectSlug);
     await removeEntry(attachmentsBase, taskId, true);
   } catch {
-    // Ingen vedhæftninger at fjerne.
   }
 }
 
-// Tilføjer en kommentar til en task (append-only).
 export async function addComment(
   workspace: WorkspaceHandle,
   projectSlug: string,
@@ -645,7 +603,7 @@ export async function addComment(
   text: string,
 ) {
   const trimmed = text.trim();
-  if (!trimmed) throw new Error("Kommentartekst er påkrævet.");
+  if (!trimmed) throw new Error(storageText().commentRequired);
 
   const task = await loadTaskById(workspace, projectSlug, taskId);
   const comment: CommentRecord = {
@@ -658,8 +616,6 @@ export async function addComment(
   return comment;
 }
 
-// Lagrer en vedhæftet fil og registrerer metadata på tasken.
-// Filer navngives med timestamp + slugified filnavn for at undgå kollisioner.
 export async function addAttachment(
   workspace: WorkspaceHandle,
   projectSlug: string,
@@ -689,7 +645,6 @@ export async function addAttachment(
   return attachment;
 }
 
-// Læser den binære fil bag en AttachmentRecord.
 export async function readAttachmentFile(
   workspace: WorkspaceHandle,
   projectSlug: string,
@@ -700,7 +655,6 @@ export async function readAttachmentFile(
   return (await dir.getFileHandle(storedName)).getFile();
 }
 
-// Fjerner en vedhæftning fra både filsystemet og taskens attachments-liste.
 export async function deleteAttachment(
   workspace: WorkspaceHandle,
   projectSlug: string,
@@ -709,11 +663,15 @@ export async function deleteAttachment(
 ) {
   const task = await loadTaskById(workspace, projectSlug, taskId);
   const attachment = task.attachments.find((entry) => entry.id === fileId);
-  if (!attachment) throw new Error("Vedhæftning blev ikke fundet.");
+  if (!attachment) throw new Error(storageText().attachmentNotFound);
 
   const dir = await getAttachmentsDir(workspace, projectSlug, taskId);
   await removeEntry(dir, attachment.storedName);
   task.attachments = task.attachments.filter((entry) => entry.id !== fileId);
   await saveTask(workspace, task, task.slug);
 }
+
+
+
+
 

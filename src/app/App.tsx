@@ -1,5 +1,4 @@
-// Page shell for AIPOPS Workboard.
-// Denne komponent samler kun hooks og UI-komponenter – selve domænelogikken
+﻿// Page shell for AIPOPS Workboard.
 // ligger i feature-hooks (tasks, projekter, workspace, async-feedback).
 import { useEffect, useRef, useState } from "react";
 import type { NoteRecord, ProjectRecord, TaskRecord, TaskStatus } from "../types";
@@ -33,15 +32,14 @@ import { NotificationSettingsModal } from "./layout/NotificationSettingsModal";
 import { useAiFeatures } from "./layout/useAiFeatures";
 import { WorkspaceShell } from "./layout/WorkspaceShell";
 import { buildWorkspaceViewModel } from "../features/workspace/workspaceViewModel";
-import { LocaleProvider, useStrings } from "./i18n";
+import { LocaleProvider, useLocale, useStrings } from "./i18n";
+import { getTextCatalog } from "./i18n/catalog";
 import { NotesModal } from "../features/notes/NotesModal";
 
 type WorkspaceHandle = FileSystemDirectoryHandle | null;
 
 function AppInner() {
   // Central page-state:
-  // - workspace/workspaceName: valgt mappe på brugerens disk
-  // - projects/tasksByProject: domænedata læst fra filsystemet
   // - selectedProjectSlug/selectedTaskId: hvad der er aktivt i UI'et
   // - diverse UI-flags til filtre, formularer, modaler og turen.
   const [workspace, setWorkspace] = useState<WorkspaceHandle>(null);
@@ -99,10 +97,8 @@ function AppInner() {
     }
   });
 
-  // Async-feedback (busy/error/message) deles af alle domæne-handlers via runAction.
   const { busy, error, message, setError, setMessage, runAction } = useAsyncFeedback();
 
-  // Synkroniser valgt tema til body-klasse så CSS kan lave overrides.
   useEffect(() => {
     document.body.classList.toggle("theme-dark", theme === "dark");
   }, [theme]);
@@ -124,7 +120,6 @@ function AppInner() {
     return () => window.removeEventListener("resize", evaluateMobileLike);
   }, []);
 
-  // Ved første render forsøger vi at gendanne seneste arbejdsmappe
   // og loade projekter/opgaver derfra.
   useEffect(() => {
     void (async () => {
@@ -136,14 +131,12 @@ function AppInner() {
         setWorkspace(restored);
         setWorkspaceName(restored.name);
       } catch (caught) {
-        console.error("Kunne ikke genskabe arbejdsmappe", caught);
+        console.error(getTextCatalog(locale).appLogs.restoreWorkspace, caught);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Når der er en aktiv arbejdsmappe, forsøger vi at læse konfigurationsfilen.
-  // Herfra afgør vi bl.a., om AI er sat op for denne mappe.
   useEffect(() => {
     void (async () => {
       if (!workspace) {
@@ -159,8 +152,6 @@ function AppInner() {
       setAiApiKey(nextKey);
       setNotificationsEnabled(config?.notifications?.enabled ?? true);
       setDeadlineReminderMinutes(config?.notifications?.reminderMinutes ?? 30);
-      // Hvis der ikke er nogen nøgle og brugeren ikke tidligere er blevet præsenteret
-      // for AI-opsætning for denne arbejdsmappe, viser vi en lille wizard.
       if (!nextKey && !config?.ai?.seenSetup) {
         setShowAiSetup(true);
       }
@@ -184,8 +175,8 @@ function AppInner() {
           setNotesSaving(true);
           await saveNotes(workspace, notes);
         } catch (caught) {
-          console.error("Kunne ikke gemme noter", caught);
-          setError("Kunne ikke gemme noter. Tjek at arbejdsmappe-adgang stadig er tilladt.");
+          console.error(getTextCatalog(locale).appLogs.saveNotes, caught);
+          setError(appText.saveNotesError);
         } finally {
           setNotesSaving(false);
         }
@@ -199,7 +190,6 @@ function AppInner() {
   }, [notes, workspace, setError]);
 
   // Loader projekter + tasks fra filsystemet og opdaterer hele view-modellen
-  // via den fælles loadAllDataModel-helper.
   async function loadAllData(
     handle: FileSystemDirectoryHandle,
     preferredProjectSlug?: string,
@@ -215,7 +205,7 @@ function AppInner() {
   // Sikrer at der er valgt en arbejdsmappe, ellers kastes en fejl
   // (til brug i runAction).
   async function requireWorkspace() {
-    if (!workspace) throw new Error("Vælg en arbejdsmappe først.");
+    if (!workspace) throw new Error(appText.chooseWorkspaceFirst);
     return workspace;
   }
 
@@ -416,7 +406,7 @@ function AppInner() {
       const notifyOverdueKey = `${task.id}:overdue`;
 
       if (minsLeft >= 0 && minsLeft <= deadlineReminderMinutes && !seen.has(notifySoonKey)) {
-        const title = minsLeft <= 0 ? "Deadline nu" : `Deadline om ${minsLeft} min`;
+        const title = minsLeft <= 0 ? appText.deadlineNow : appText.deadlineIn.replace("{count}", String(minsLeft));
         new Notification(title, {
           body: task.title,
           tag: notifySoonKey,
@@ -425,7 +415,7 @@ function AppInner() {
       }
 
       if (dueMs < now && !seen.has(notifyOverdueKey)) {
-        new Notification("Deadline overskredet", {
+        new Notification(appText.deadlineOverdue, {
           body: task.title,
           tag: notifyOverdueKey,
         });
@@ -448,7 +438,7 @@ function AppInner() {
         const notifyOverdueKey = `${task.id}:overdue`;
 
         if (minsLeft >= 0 && minsLeft <= deadlineReminderMinutes && !seen.has(notifySoonKey)) {
-          const title = minsLeft <= 0 ? "Deadline nu" : `Deadline om ${minsLeft} min`;
+          const title = minsLeft <= 0 ? appText.deadlineNow : appText.deadlineIn.replace("{count}", String(minsLeft));
           new Notification(title, {
             body: task.title,
             tag: notifySoonKey,
@@ -457,7 +447,7 @@ function AppInner() {
         }
 
         if (dueMs < currentNow && !seen.has(notifyOverdueKey)) {
-          new Notification("Deadline overskredet", {
+          new Notification(appText.deadlineOverdue, {
             body: task.title,
             tag: notifyOverdueKey,
           });
@@ -531,7 +521,8 @@ function AppInner() {
     return () => window.removeEventListener("keydown", handleKeydown);
   }, [selectedTask, busy, panelDraft.title, panelDraft.projectSlug, showAbout]);
 
-  const { dataHelp } = useStrings();
+  const { dataHelp, app: appText } = useStrings();
+  const { locale } = useLocale();
 
   return (
     <div className="app-root">
@@ -591,8 +582,7 @@ function AppInner() {
         aiBusy={aiBusy}
         aiLabel={
           aiApiKey && newTaskDescription.length > 120
-            ? "✨ Ryd op fra mail/Teams"
-            : "✨ Hjælp til beskrivelse"
+            ? appText.aiCleanMail : appText.aiHelpDescription
         }
         canSplitNewTaskDescription={canSplitNewTaskDescription}
         onSplitNewTaskDescription={() => handleSplitFromNewTaskDescription(() => setShowAiSetup(true))}
@@ -728,7 +718,6 @@ function AppInner() {
               }
 
               // Hvis vi kom fra "Ny opgave"-formularen (ingen valgt opgave),
-              // luk og ryd kladden efter split, så brugeren ikke sidder tilbage
               // med en gammel mail-tekst.
               if (!selectedTask) {
                 setIsCreatingTask(false);
@@ -740,13 +729,13 @@ function AppInner() {
 
               await loadAllData(handle, splitProjectSlug, selectedTask?.id ?? null);
               if (markOriginalDone && selectedTask) {
-                setMessage(
-                  `${createdCount} opgave${createdCount === 1 ? "" : "r"} oprettet, og den oprindelige opgave er markeret som færdig.`,
-                );
+                setMessage(appText.splitCreatedDone
+                  .replace("{count}", String(createdCount))
+                  .replace("{plural}", createdCount === 1 ? "" : locale === "da" ? "r" : "s"));
               } else {
-                setMessage(
-                  `${createdCount} opgave${createdCount === 1 ? "" : "r"} oprettet ud fra teksten.`,
-                );
+                setMessage(appText.splitCreated
+                  .replace("{count}", String(createdCount))
+                  .replace("{plural}", createdCount === 1 ? "" : locale === "da" ? "r" : "s"));
               }
             });
           })();
@@ -875,3 +864,6 @@ export default function App() {
     </LocaleProvider>
   );
 }
+
+
+

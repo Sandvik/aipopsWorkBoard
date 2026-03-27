@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import type { SplitTaskSuggestion } from "../../infrastructure/aiClient";
+import { useLocale } from "../../app/i18n";
+import { getTextCatalog } from "../../app/i18n/catalog";
 
 type SplitTasksModalProps = {
   open: boolean;
@@ -18,6 +20,8 @@ export function SplitTasksModal({
 }: SplitTasksModalProps) {
   const [selected, setSelected] = useState<Set<number>>(() => new Set());
   const [markOriginalDone, setMarkOriginalDone] = useState(false);
+  const { locale } = useLocale();
+  const t = getTextCatalog(locale).splitTasks;
 
   useEffect(() => {
     if (open) {
@@ -31,10 +35,8 @@ export function SplitTasksModal({
   return (
     <div className="confirm-modal-backdrop">
       <div className="confirm-modal split-tasks-modal" role="dialog" aria-modal="true">
-        <h2>Lav flere opgaver ud fra teksten</h2>
-        <p className="muted small">
-          Vælg de opgaver du vil oprette. Du kan altid ændre eller slette dem bagefter.
-        </p>
+        <h2>{t.title}</h2>
+        <p className="muted small">{t.intro}</p>
         <div className="split-tasks-list">
           {suggestions.map((item, index) => {
             const checked = selected.has(index);
@@ -67,12 +69,12 @@ export function SplitTasksModal({
               checked={markOriginalDone}
               onChange={(event) => setMarkOriginalDone(event.target.checked)}
             />
-            <span>Marker den oprindelige opgave som færdig, når disse opgaver er oprettet</span>
+            <span>{t.markOriginal}</span>
           </label>
         ) : null}
         <div className="confirm-modal-actions">
           <button type="button" className="ghost-button" onClick={onCancel}>
-            Annuller
+            {t.cancel}
           </button>
           <button
             type="button"
@@ -85,17 +87,14 @@ export function SplitTasksModal({
               )
             }
           >
-            Opret opgaver
+            {t.confirm}
           </button>
         </div>
         <p className="muted tiny">
-          Opgaverne oprettes i det samme projekt. Du kan altid ændre eller slette dem bagefter.
-          {canMarkOriginalDone
-            ? " Den oprindelige opgave ændres kun, hvis du sætter fluebenet ovenfor."
-            : ""}
+          {t.footer}
+          {canMarkOriginalDone ? ` ${t.footerMarkOriginal}` : ""}
         </p>
       </div>
     </div>
   );
 }
-

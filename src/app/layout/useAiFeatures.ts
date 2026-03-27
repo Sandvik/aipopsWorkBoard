@@ -12,6 +12,7 @@ import {
 } from "../../infrastructure/aiClient";
 import { looksLikeMailOrChat, ensureNonEmptyText } from "../../features/tasks/aiHelpers";
 import { parseDeadline } from "../../features/tasks/taskUi";
+import { useLocale, useStrings } from "../i18n";
 
 type WorkspaceAiContext = {
   projects: ProjectRecord[];
@@ -50,6 +51,8 @@ export function useAiFeatures({
   setMessage,
   runAction,
 }: UseAiFeaturesArgs) {
+  const { locale } = useLocale();
+  const { aiFlow: text } = useStrings();
   const [aiBusy, setAiBusy] = useState(false);
   const [morningBrief, setMorningBrief] = useState("");
   const [showMorningBrief, setShowMorningBrief] = useState(false);
@@ -69,17 +72,18 @@ export function useAiFeatures({
 
   async function handleMorningBrief(onRequireKey: () => void) {
     if (!requireApiKey(onRequireKey)) return;
-    setMorningBrief("Genererer brief…");
+    setMorningBrief(text.generatingBrief);
     setShowMorningBrief(true);
 
     const lines: string[] = [];
     const today = new Date();
-    const todayLabel = today.toLocaleDateString("da-DK", {
+    const dateLocale = locale === "da" ? "da-DK" : "en-US";
+    const todayLabel = today.toLocaleDateString(dateLocale, {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
     });
-    lines.push(`Dato: ${todayLabel}`);
+    lines.push(`${text.date}: ${todayLabel}`);
     lines.push("");
     workspace.activeProjects.forEach((project) => {
       const tasks = workspace.tasksByProject[project.slug] ?? [];
@@ -96,7 +100,7 @@ export function useAiFeatures({
         (task) => task.priority === "High" || task.priority === "Critical",
       ).length;
       lines.push(
-        `Projekt: ${project.name} – Opgaver i alt: ${tasks.length}, Backlog: ${backlog}, Klar: ${todo}, I gang: ${doing}, Færdige: ${done}, Forsinkede: ${overdue}, Høj prioritet: ${highPriority}`,
+        `${text.project}: ${project.name} - ${text.tasksTotal}: ${tasks.length}, ${text.backlog}: ${backlog}, ${text.todo}: ${todo}, ${text.doing}: ${doing}, ${text.done}: ${done}, ${text.overdue}: ${overdue}, ${text.highPriority}: ${highPriority}`,
       );
       const importantTasks = openTasks
         .filter(
@@ -107,30 +111,30 @@ export function useAiFeatures({
             task.status === "doing",
         )
         .slice(0, 3);
-      importantTasks.forEach((task) => {
+      importantTasks.forEach((taskItem) => {
         const statusLabel =
-          task.status === "backlog"
-            ? "Backlog"
-            : task.status === "todo"
-              ? "Klar"
-              : task.status === "doing"
-                ? "I gang"
-                : "Færdig";
-        const deadlineText = task.deadline
-          ? `, frist: ${(() => {
-              const parsed = parseDeadline(task.deadline);
+          taskItem.status === "backlog"
+            ? text.backlog
+            : taskItem.status === "todo"
+              ? text.todo
+              : taskItem.status === "doing"
+                ? text.doing
+                : text.done;
+        const deadlineText = taskItem.deadline
+          ? `, ${text.deadline}: ${(() => {
+              const parsed = parseDeadline(taskItem.deadline);
               return parsed
-                ? parsed.toLocaleString("da-DK", {
+                ? parsed.toLocaleString(dateLocale, {
                     year: "numeric",
                     month: "2-digit",
                     day: "2-digit",
                     hour: "2-digit",
                     minute: "2-digit",
                   })
-                : task.deadline;
+                : taskItem.deadline;
             })()}`
           : "";
-        lines.push(`- [${statusLabel}] ${task.title}${deadlineText}`);
+        lines.push(`- [${statusLabel}] ${taskItem.title}${deadlineText}`);
       });
       lines.push("");
     });
@@ -154,7 +158,7 @@ export function useAiFeatures({
   async function handleAiSuggestNewTaskDescription(onRequireKey: () => void) {
     if (!requireApiKey(onRequireKey)) return;
     if (!newTask.title && !newTask.description) {
-      setMessage("Skriv mindst en titel eller lidt tekst først.");
+      setMessage(text.needTitleOrText);
       return;
     }
     setAiBusy(true);
@@ -185,8 +189,8 @@ export function useAiFeatures({
   async function handleAiSummarizeExisting(onRequireKey: () => void) {
     if (!requireApiKey(onRequireKey)) return;
     const baseText = task.panelDraft.description.trim() || task.panelDraft.title.trim();
-    const text = ensureNonEmptyText(baseText, setMessage);
-    if (!text) return;
+    const textInput = ensureNonEmptyText(baseText, setMessage);
+    if (!textInput) return;
 
     const looksLikeMessage = looksLikeMailOrChat(task.panelDraft.description);
     const isVeryShortDescription =
@@ -201,11 +205,10 @@ export function useAiFeatures({
         if (looksLikeMessage) {
           const result = await summarizeDescriptionFromMessage({
             apiKey: aiApiKey as string,
-            text,
+            text: textInput,
           });
           resultText = result.shorter;
         } else if (isVeryShortDescription) {
-          // Meget kort tekst – brug samme logik som "hjælp til beskrivelse"
           const suggestion = await suggestTaskDescription({
             apiKey: aiApiKey as string,
             title: task.panelDraft.title,
@@ -215,7 +218,7 @@ export function useAiFeatures({
         } else {
           const result = await summarizeDescription({
             apiKey: aiApiKey as string,
-            text,
+            text: textInput,
           });
           resultText = result.shorter;
         }
@@ -239,11 +242,9 @@ export function useAiFeatures({
             };
           }
         } catch (optError) {
-          // eslint-disable-next-line no-console
-          console.warn("Kunne ikke optimere titel", optError);
+          console.warn(text.couldNotOptimizeTitle, optError);
         }
         task.setPanelDraft(nextDraft);
-        // Kun aktiver "Lav konkrete opgaver..." hvis teksten faktisk lignede en mail/chat.
         setCanSplitCurrentDescription(looksLikeMessage);
       });
     } finally {
@@ -253,25 +254,23 @@ export function useAiFeatures({
 
   async function handleSplitFromDescription(onRequireKey: () => void) {
     if (!requireApiKey(onRequireKey)) return;
-    const text = ensureNonEmptyText(
+    const textInput = ensureNonEmptyText(
       task.panelDraft.description,
       setMessage,
-      "Tilføj lidt tekst i beskrivelsen først.",
+      text.addDescriptionText,
     );
-    if (!text) return;
+    if (!textInput) return;
 
     setAiBusy(true);
     try {
       await runAction(async () => {
         const suggestions = await splitIntoTasks({
           apiKey: aiApiKey as string,
-          text,
+          text: textInput,
         });
 
         if (!suggestions.length) {
-          setMessage(
-            "Jeg kunne ikke finde tydelige opgaver i teksten. Prøv at gøre teksten lidt kortere.",
-          );
+          setMessage(text.noTasksFound);
           return;
         }
 
@@ -288,25 +287,23 @@ export function useAiFeatures({
 
   async function handleSplitFromNewTaskDescription(onRequireKey: () => void) {
     if (!requireApiKey(onRequireKey)) return;
-    const text = ensureNonEmptyText(
+    const textInput = ensureNonEmptyText(
       newTask.description,
       setMessage,
-      "Tilføj lidt tekst i beskrivelsen først.",
+      text.addDescriptionText,
     );
-    if (!text) return;
+    if (!textInput) return;
 
     setAiBusy(true);
     try {
       await runAction(async () => {
         const suggestions = await splitIntoTasks({
           apiKey: aiApiKey as string,
-          text,
+          text: textInput,
         });
 
         if (!suggestions.length) {
-          setMessage(
-            "Jeg kunne ikke finde tydelige opgaver i teksten. Prøv at gøre teksten lidt kortere.",
-          );
+          setMessage(text.noTasksFound);
           return;
         }
 

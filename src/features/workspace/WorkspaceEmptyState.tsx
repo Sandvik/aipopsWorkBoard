@@ -1,6 +1,6 @@
-// Tom-tilstand når ingen arbejdsmappe er valgt endnu.
-// Viser kort forklaring og en knap til at vælge mappe.
-import { useStrings } from "../../app/i18n";
+import { useStrings, useLocale } from "../../app/i18n";
+import { getTextCatalog } from "../../app/i18n/catalog";
+
 type WorkspaceEmptyStateProps = {
   startTourAfterWorkspace: boolean;
   busy: boolean;
@@ -14,51 +14,54 @@ export function WorkspaceEmptyState({
   onStartTourToggle,
   onPickWorkspace,
 }: WorkspaceEmptyStateProps) {
-  const { onboarding: t } = useStrings();
+  const { onboarding: t, board } = useStrings();
+  const { locale } = useLocale();
+  const ghost = getTextCatalog(locale).workspaceGhost;
+
   return (
     <div className="empty-main">
       <div className="empty-main-inner">
         <div className="board empty-main-ghost-board" aria-hidden="true">
           <div className="board-column ghost-column">
             <div className="column-header">
-              <h2>Backlog</h2>
+              <h2>{board.columnTitles.backlog}</h2>
             </div>
             <div className="column-body">
               <div className="task-card ghost-task">
-                <div className="task-title">Læs lang mail fra kunden</div>
+                <div className="task-title">{ghost.backlog1}</div>
               </div>
               <div className="task-card ghost-task">
-                <div className="task-title">Lav overblik over næste uge</div>
-              </div>
-            </div>
-          </div>
-          <div className="board-column ghost-column">
-            <div className="column-header">
-              <h2>Klar</h2>
-            </div>
-            <div className="column-body">
-              <div className="task-card ghost-task">
-                <div className="task-title">Plan for projekt X</div>
+                <div className="task-title">{ghost.backlog2}</div>
               </div>
             </div>
           </div>
           <div className="board-column ghost-column">
             <div className="column-header">
-              <h2>I gang</h2>
+              <h2>{board.columnTitles.todo}</h2>
             </div>
             <div className="column-body">
               <div className="task-card ghost-task">
-                <div className="task-title">Opfølgning med teamet</div>
+                <div className="task-title">{ghost.todo1}</div>
               </div>
             </div>
           </div>
           <div className="board-column ghost-column">
             <div className="column-header">
-              <h2>Færdig</h2>
+              <h2>{board.columnTitles.doing}</h2>
             </div>
             <div className="column-body">
               <div className="task-card ghost-task">
-                <div className="task-title">Svar sendt til leder</div>
+                <div className="task-title">{ghost.doing1}</div>
+              </div>
+            </div>
+          </div>
+          <div className="board-column ghost-column">
+            <div className="column-header">
+              <h2>{board.columnTitles.done}</h2>
+            </div>
+            <div className="column-body">
+              <div className="task-card ghost-task">
+                <div className="task-title">{ghost.done1}</div>
               </div>
             </div>
           </div>
@@ -101,4 +104,3 @@ export function WorkspaceEmptyState({
     </div>
   );
 }
-

@@ -1,9 +1,7 @@
-// Hook der samler al projekt-relateret domænelogik:
-// - aktive/arkiverede projekter
-// - opret/opdater/slet projekter (inkl. confirm-dialog og lokal state-oprydning)
-import { useMemo } from "react";
+﻿import { useMemo } from "react";
 import type { ProjectRecord, TaskRecord } from "../../types";
 import { createProject, updateProject, deleteProject } from "../../infrastructure/storage";
+import { useStrings } from "../../app/i18n";
 
 type ConfirmState = {
   title: string;
@@ -54,6 +52,8 @@ export function useProjectActions({
   setConfirmState,
   setNewProjectName,
 }: UseProjectActionsArgs) {
+  const { projectActions: text } = useStrings();
+
   const activeProjects = useMemo(
     () => projects.filter((project) => !project.archived),
     [projects],
@@ -72,7 +72,7 @@ export function useProjectActions({
       const project = await createProject(handle, { name: trimmed });
       setNewProjectName("");
       await loadAllData(handle, project.slug);
-    }, "Projekt oprettet.");
+    }, text.created);
   }
 
   async function handleProjectUpdate(project: ProjectRecord, updates: Partial<ProjectRecord>) {
@@ -80,15 +80,15 @@ export function useProjectActions({
       const handle = await requireWorkspace();
       const updated = await updateProject(handle, project.slug, updates);
       await loadAllData(handle, updated.slug, selectedTaskId);
-    }, "Projekt gemt.");
+    }, text.saved);
   }
 
   async function handleProjectDelete(project: ProjectRecord) {
     setConfirmState({
-      title: "Slet projekt",
-      message: `Er du sikker på, at du vil slette projektet "${project.name}"? Alle opgaver i projektet bliver også slettet.`,
-      confirmLabel: "Slet projekt",
-      cancelLabel: "Annuller",
+      title: text.deleteTitle,
+      message: text.deleteMessage.replace("{name}", project.name),
+      confirmLabel: text.deleteLabel,
+      cancelLabel: text.cancel,
       onConfirm: async () => {
         await runAction(async () => {
           const handle = await requireWorkspace();
@@ -110,7 +110,7 @@ export function useProjectActions({
           setSelectedTaskId(nextSelectedTaskId);
 
           await loadAllData(handle, nextSelectedProjectSlug || undefined, nextSelectedTaskId || null);
-        }, "Projekt slettet.");
+        }, text.deleted);
         setConfirmState(null);
       },
     });
@@ -124,4 +124,3 @@ export function useProjectActions({
     handleProjectDelete,
   };
 }
-

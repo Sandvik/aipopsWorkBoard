@@ -682,8 +682,12 @@ body.theme-dark .workspace-progress-badge {
 }
 
 .morning-brief-bullet-dot {
-  font-size: 0.9rem;
-  line-height: 1.2;
+  width: 0.35rem;
+  height: 0.35rem;
+  margin-top: 0.4rem;
+  border-radius: 999px;
+  background: currentColor;
+  flex: 0 0 auto;
 }
 
 body.theme-dark .morning-brief-line {
@@ -980,6 +984,28 @@ body.theme-dark .morning-brief-modal {
   color: #9ca3af;
 }
 
+.input-with-icon-icon svg {
+  display: block;
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.toolbar-inline-icon svg {
+  display: block;
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.toolbar-inline-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.95rem;
+  height: 0.95rem;
+  line-height: 0;
+  flex: 0 0 auto;
+}
+
 .toolbar-search input::placeholder {
   color: #9ca3af;
 }
@@ -993,6 +1019,16 @@ body.theme-dark .toolbar-search input::placeholder {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+}
+
+.toolbar-actions .ghost-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.theme-toggle-button {
+  justify-content: center;
 }
 
 .toolbar-stats {

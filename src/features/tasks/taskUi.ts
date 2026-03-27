@@ -1,11 +1,8 @@
-// UI-hjælpere og typer til task-delen af appen.
-// Her samles labels, default-drafts og små formateringsfunktioner,
-// så både board og detaljer-panel kan genbruge dem.
 import type { TaskPriority, TaskStatus } from "../../types";
-import { STRINGS, type Locale } from "../../app/i18n/locales";
+import { STRINGS } from "../../app/i18n/locales";
+import { getStoredLocale, getStoredTextCatalog } from "../../app/i18n/catalog";
+import { getStoredTextCatalog } from "../../app/i18n/catalog";
 
-// Lokalt udkast til en task, mens brugeren redigerer i detaljer-panelet.
-// Dette er adskilt fra TaskRecord, så vi kan håndtere strings i formularfelter.
 export type PanelDraft = {
   title: string;
   description: string;
@@ -16,23 +13,25 @@ export type PanelDraft = {
   status: TaskStatus;
 };
 
-// Menneskelige labels til status-værdier.
 export const STATUS_LABELS: Record<TaskStatus, string> = {
   backlog: "Backlog",
-  todo: "Klar",
-  doing: "I gang",
-  done: "Færdig",
+  todo: "Ready",
+  doing: "Doing",
+  done: "Done",
 };
 
-// Menneskelige labels til prioritet-værdier.
-export const PRIORITY_LABELS: Record<TaskPriority, string> = {
-  Low: "Lav",
-  Medium: "Mellem",
-  High: "Høj",
-  Critical: "Kritisk",
-};
+export function getPriorityLabels(): Record<TaskPriority, string> {
+  const labels = getStoredTextCatalog().priorityLabels;
+  return {
+    Low: labels.low,
+    Medium: labels.medium,
+    High: labels.high,
+    Critical: labels.critical,
+  };
+}
 
-// Start-værdier til detaljer-panelet, når ingen task er valgt.
+export const PRIORITY_LABELS = getPriorityLabels();
+
 export const EMPTY_DRAFT: PanelDraft = {
   title: "",
   description: "",
@@ -76,16 +75,14 @@ export function parseDeadline(value: string | null) {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-function getCurrentLocaleForDate(): Locale {
-  if (typeof window === "undefined") return "en";
-  const stored = window.localStorage.getItem("aipops.locale") as Locale | null;
-  return stored === "da" || stored === "en" ? stored : "en";
+function getCurrentLocaleForDate() {
+  return getStoredLocale();
 }
 
 export function formatDate(value: string | null) {
   const { date } = STRINGS[getCurrentLocaleForDate()];
-  const dateLocale = date?.dateLocale ?? "da-DK";
-  const noDeadlineLabel = date?.noDeadlineLabel ?? "Ingen frist";
+  const dateLocale = date?.dateLocale ?? "en-US";
+  const noDeadlineLabel = date?.noDeadlineLabel ?? "No due date";
   if (!value) return noDeadlineLabel;
   const parsed = parseDeadline(value);
   if (!parsed) return noDeadlineLabel;
@@ -101,7 +98,6 @@ export function formatDate(value: string | null) {
   });
 }
 
-// Bruges til at style deadlines, der ligger før dags dato, som "forfaldne".
 export function isOverdue(value: string | null) {
   if (!value) return false;
   const parsed = parseDeadline(value);
@@ -114,4 +110,3 @@ export function isOverdue(value: string | null) {
   }
   return now > parsed;
 }
-
