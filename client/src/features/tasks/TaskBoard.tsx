@@ -1,26 +1,21 @@
 // Præsentationskomponent for opgave-boardet (de fire kolonner).
-// Har intet kendskab til filsystem eller global app-state –
-// alt styres via props og callbacks.
+// Drag-håndtag og "åbn detaljer"-område er bevidst adskilt,
+// så en drag-interaktion aldrig skal kæmpe mod et klik på samme element.
+import type { KeyboardEvent } from "react";
 import type { ProjectRecord, TaskRecord, TaskStatus } from "../../types";
 import { PRIORITY_LABELS, formatDate, isOverdue } from "./taskUi";
 import { useStrings } from "../../i18n";
 
 type TaskBoardProps = {
-  // Alle tasks der skal vises (allerede filtreret i App).
   tasks: TaskRecord[];
-  // Liste over projekter, så vi kan vise projektnavn på kortene.
   projects: ProjectRecord[];
-  // Id på den aktuelt valgte opgave, så kortet kan markeres.
   selectedTaskId: string;
-  // Id på den task, der aktuelt trækkes med drag & drop.
   dragTaskId: string;
-  // Brugeren har klikket på et kort.
+  dragOverStatus: TaskStatus | "";
   onTaskSelect: (taskId: string) => void;
-  // Brugeren har sluppet et kort i en kolonne med en given status.
-  onTaskDrop: (taskId: string, nextStatus: TaskStatus) => void;
-  // Drag & drop starter for en given task.
+  onTaskDrop: (taskId: string, nextStatus: TaskStatus, orderedTaskIds: string[]) => void;
   onTaskDragStart: (taskId: string) => void;
-  // Drag & drop afsluttes (uanset om noget blev droppet).
+  onTaskDragEnterColumn: (status: TaskStatus) => void;
   onTaskDragEnd: () => void;
 };
 
@@ -29,32 +24,54 @@ export function TaskBoard({
   projects,
   selectedTaskId,
   dragTaskId,
+  dragOverStatus,
   onTaskSelect,
   onTaskDrop,
   onTaskDragStart,
+  onTaskDragEnterColumn,
   onTaskDragEnd,
 }: TaskBoardProps) {
   const { board } = useStrings();
 
+  function handleCardKeyDown(event: KeyboardEvent<HTMLDivElement>, taskId: string) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      event.stopPropagation();
+      onTaskSelect(taskId);
+    }
+  }
+
   return (
     <>
       {(["backlog", "todo", "doing", "done"] as TaskStatus[]).map((status) => {
-        // Tasks i den enkelte kolonne (status).
         const columnTasks = tasks.filter((task) => task.status === status);
+
         return (
           <div
             key={status}
-            className="board-column"
+            className={`board-column ${dragOverStatus === status ? "board-column-drop-target" : ""}`}
             onDragOver={(event) => {
-              // Tillad drop ved at forhindre default.
               event.preventDefault();
+              if (dragTaskId) {
+                onTaskDragEnterColumn(status);
+              }
             }}
             onDrop={(event) => {
               event.preventDefault();
               const taskId = event.dataTransfer.getData("text/plain");
-              if (taskId) {
-                onTaskDrop(taskId, status);
+              if (!taskId) {
+                onTaskDragEnd();
+                return;
               }
+
+              const orderedTaskIds = [
+                ...columnTasks
+                  .filter((task) => task.id !== taskId)
+                  .map((task) => task.id),
+                taskId,
+              ];
+
+              onTaskDrop(taskId, status, orderedTaskIds);
               onTaskDragEnd();
             }}
           >
@@ -65,59 +82,83 @@ export function TaskBoard({
               </div>
               <span className="muted column-count">{columnTasks.length}</span>
             </div>
+
             <div className="column-body">
               {columnTasks.map((task) => {
                 const project = projects.find((entry) => entry.slug === task.projectSlug);
+
                 return (
-                  <button
+                  <div
                     key={task.id}
-                    type="button"
                     className={`task-card task-card-priority-${task.priority.toLowerCase()} ${
                       selectedTaskId === task.id ? "active" : ""
                     } ${dragTaskId === task.id ? "dragging" : ""}`}
-                    onClick={(event) => {
-                      // Undgå at klikket bobler op og f.eks. rydder selection.
-                      event.stopPropagation();
-                      onTaskSelect(task.id);
-                    }}
                   >
                     <div className="row between tight task-card-top">
                       <span
                         className="task-drag-handle"
                         draggable
+                        role="button"
+                        aria-label={`Flyt opgaven ${task.title}`}
                         onMouseDown={(event) => {
-                          // Undgå at mousedown vælger kortet utilsigtet.
+                          event.stopPropagation();
+                        }}
+                        onClick={(event) => {
+                          event.preventDefault();
                           event.stopPropagation();
                         }}
                         onDragStart={(event) => {
-                          // Sender task-id med som plain text i dataTransfer,
-                          // så kolonne-containeren kan læse det i onDrop.
                           event.stopPropagation();
+                          event.dataTransfer.effectAllowed = "move";
                           event.dataTransfer.setData("text/plain", task.id);
                           onTaskDragStart(task.id);
+                        }}
+                        onDragEnd={() => {
+                          onTaskDragEnd();
                         }}
                       >
                         ☰
                       </span>
-                      <strong className="task-title">{task.title}</strong>
-                      <span className={`priority-pill priority-${task.priority.toLowerCase()}`}>
-                        {PRIORITY_LABELS[task.priority]}
-                      </span>
+
+                      <div
+                        className="task-card-select-region"
+                        role="button"
+                        tabIndex={0}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onTaskSelect(task.id);
+                        }}
+                        onKeyDown={(event) => handleCardKeyDown(event, task.id)}
+                      >
+                        <div className="task-card-title-row">
+                          <strong className="task-title">{task.title}</strong>
+                          <span className={`priority-pill priority-${task.priority.toLowerCase()}`}>
+                            {PRIORITY_LABELS[task.priority]}
+                          </span>
+                        </div>
+                        <div className="project-mark">{project?.name ?? task.projectSlug}</div>
+                        <div className="task-card-meta">
+                          <span className="muted">👤 {task.assignee || board.assigneeNone}</span>
+                          <span className={`deadline ${isOverdue(task.deadline) ? "overdue" : ""}`}>
+                            🗓 {formatDate(task.deadline)}
+                          </span>
+                          {task.attachments.length > 0 ? (
+                            <span className="task-chip">📎 {task.attachments.length}</span>
+                          ) : null}
+                          {task.comments.length > 0 ? (
+                            <span className="task-chip">💬 {task.comments.length}</span>
+                          ) : null}
+                        </div>
+                      </div>
                     </div>
-                    <div className="project-mark">{project?.name ?? task.projectSlug}</div>
-                    <div className="task-card-meta">
-                      <span className="muted">👤 {task.assignee || board.assigneeNone}</span>
-                      <span className={`deadline ${isOverdue(task.deadline) ? "overdue" : ""}`}>
-                        🗓 {formatDate(task.deadline)}
-                      </span>
-                      {task.attachments.length > 0 && (
-                        <span className="task-chip">📎 {task.attachments.length}</span>
-                      )}
-                      {task.comments.length > 0 && <span className="task-chip">💬 {task.comments.length}</span>}
-                    </div>
-                  </button>
+                  </div>
                 );
               })}
+
+              {dragOverStatus === status && dragTaskId ? (
+                <div className="drop-indicator">{board.dropHint ?? "Slip opgaven her"}</div>
+              ) : null}
+
               {!columnTasks.length ? <div className="muted">{board.emptyColumn}</div> : null}
             </div>
           </div>
@@ -126,4 +167,3 @@ export function TaskBoard({
     </>
   );
 }
-

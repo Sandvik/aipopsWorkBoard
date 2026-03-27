@@ -187,6 +187,7 @@ type BoardStrings = {
   };
   emptyColumn: string;
   assigneeNone: string;
+  dropHint: string;
 };
 
 type ProjectTooltipStrings = {
@@ -432,6 +433,7 @@ export const STRINGS: Record<Locale, UiStrings> = {
       },
       emptyColumn: "Ingen opgaver i denne kolonne.",
       assigneeNone: "Ingen ansvarlig",
+      dropHint: "Slip opgaven her",
     },
     workspaceAlerts: {
       browserNoAccessTitle: "Din browser mangler mappeadgang",
@@ -681,6 +683,7 @@ export const STRINGS: Record<Locale, UiStrings> = {
       },
       emptyColumn: "No tasks in this column.",
       assigneeNone: "No assignee",
+      dropHint: "Drop the task here",
     },
     workspaceAlerts: {
       browserNoAccessTitle: "Your browser does not support folder access",
@@ -743,4 +746,3 @@ export const STRINGS: Record<Locale, UiStrings> = {
     },
   },
 };
-

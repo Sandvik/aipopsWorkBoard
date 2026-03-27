@@ -260,7 +260,7 @@ body.theme-dark .task-panel-actions .muted.small {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 13.5rem minmax(0, 1fr) 22rem;
+  grid-template-columns: 13.5rem minmax(0, 1fr) 34rem;
   min-height: calc(100vh - 4.35rem);
 }
 
@@ -1206,6 +1206,13 @@ body.theme-dark .board-empty .muted {
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(148, 163, 184, 0.32);
   min-height: 20rem;
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.board-column-drop-target {
+  border-color: rgba(37, 99, 235, 0.6);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+  transform: translateY(-1px);
 }
 
 .column-header {
@@ -1246,12 +1253,29 @@ body.theme-dark .board-empty .muted {
   text-align: left;
 }
 
+.task-card-select-region {
+  display: grid;
+  gap: 0.55rem;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  outline: none;
+}
+
+.task-card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
 .task-card.active {
   box-shadow: 0 18px 40px rgba(37, 99, 235, 0.18);
 }
 
 .task-card.dragging {
-  opacity: 0.7;
+  opacity: 0.55;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
 }
 
 .task-title {
@@ -1274,10 +1298,29 @@ body.theme-dark .board-empty .muted {
 }
 
 .task-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-right: 0.25rem;
   cursor: grab;
   font-size: 0.85rem;
   color: #9ca3af;
+  user-select: none;
+}
+
+.task-drag-handle:active {
+  cursor: grabbing;
+}
+
+.drop-indicator {
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.85rem;
+  border: 1px dashed rgba(37, 99, 235, 0.45);
+  background: rgba(219, 234, 254, 0.65);
+  color: #1d4ed8;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
 }
 
 .task-chip {

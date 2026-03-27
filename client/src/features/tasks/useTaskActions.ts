@@ -14,6 +14,7 @@ import {
   createTask,
   deleteAttachment,
   deleteTask,
+  moveTask,
   moveTaskToProject,
   readAttachmentFile,
   updateTask,
@@ -57,7 +58,6 @@ type UseTaskActionsArgs = {
   ) => Promise<void>;
   setError: (value: string) => void;
   setSelectedTaskId: (id: string) => void;
-  setDragTaskId: (id: string) => void;
   setConfirmState: (state: ConfirmState | null) => void;
 };
 
@@ -87,7 +87,6 @@ export function useTaskActions({
   loadAllData,
   setError,
   setSelectedTaskId,
-  setDragTaskId,
   setConfirmState,
 }: UseTaskActionsArgs) {
   const selectedTask = useMemo(() => {
@@ -248,15 +247,23 @@ export function useTaskActions({
     });
   }
 
-  async function handleTaskDrop(taskId: string, nextStatus: TaskStatus) {
+  async function handleTaskDrop(
+    taskId: string,
+    nextStatus: TaskStatus,
+    orderedTaskIds: string[],
+  ) {
     const allTasks = Object.values(tasksByProject).flat();
     const task = allTasks.find((entry) => entry.id === taskId);
-    if (!task || task.status === nextStatus) return;
+    if (!task) return;
+    if (task.status === nextStatus) return;
 
     await runAction(async () => {
       const handle = await requireWorkspace();
-      await updateTask(handle, task.projectSlug, task.id, { status: nextStatus });
-      await loadAllData(handle, task.projectSlug, task.id);
+      await moveTask(handle, task.projectSlug, task.id, {
+        status: nextStatus,
+        orderedTaskIds,
+      });
+      await loadAllData(handle, task.projectSlug, null);
     });
   }
 

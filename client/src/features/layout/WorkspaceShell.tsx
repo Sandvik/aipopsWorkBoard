@@ -21,6 +21,7 @@ type WorkspaceShellProps = {
   selectedProjectSlug: string;
   selectedTaskId: string;
   dragTaskId: string;
+  dragOverStatus: TaskStatus | "";
   selectedTask: TaskRecord | null;
   // Statetiketter
   workspaceProgressLabel: string;
@@ -74,8 +75,9 @@ type WorkspaceShellProps = {
   // Board / tasks
   visibleTasks: TaskRecord[];
   onTaskSelect: (taskId: string) => void;
-  onTaskDrop: (taskId: string, status: TaskStatus) => void;
+  onTaskDrop: (taskId: string, status: TaskStatus, orderedTaskIds: string[]) => void;
   onTaskDragStart: (taskId: string) => void;
+  onTaskDragEnterColumn: (status: TaskStatus) => void;
   onTaskDragEnd: () => void;
   // Detaljepanel
   panelDraft: PanelDraft;
@@ -115,6 +117,7 @@ export function WorkspaceShell({
   selectedProjectSlug,
   selectedTaskId,
   dragTaskId,
+  dragOverStatus,
   selectedTask,
   workspaceProgressLabel,
   workspaceProgressTooltip,
@@ -165,6 +168,7 @@ export function WorkspaceShell({
   onTaskSelect,
   onTaskDrop,
   onTaskDragStart,
+  onTaskDragEnterColumn,
   onTaskDragEnd,
   panelDraft,
   commentText,
@@ -284,9 +288,11 @@ export function WorkspaceShell({
                     projects={projects}
                     selectedTaskId={selectedTaskId}
                     dragTaskId={dragTaskId}
+                    dragOverStatus={dragOverStatus}
                     onTaskSelect={onTaskSelect}
                     onTaskDrop={onTaskDrop}
                     onTaskDragStart={onTaskDragStart}
+                    onTaskDragEnterColumn={onTaskDragEnterColumn}
                     onTaskDragEnd={onTaskDragEnd}
                   />
                 </section>
@@ -330,4 +336,3 @@ export function WorkspaceShell({
     </>
   );
 }
-

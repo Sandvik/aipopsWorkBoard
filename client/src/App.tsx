@@ -51,6 +51,7 @@ function AppInner() {
   const [selectedProjectSlug, setSelectedProjectSlug] = useState("");
   const [selectedTaskId, setSelectedTaskId] = useState("");
   const [dragTaskId, setDragTaskId] = useState("");
+  const [dragOverStatus, setDragOverStatus] = useState<TaskStatus | "">("");
   const [panelDraft, setPanelDraft] = useState<PanelDraft>(EMPTY_DRAFT);
   const [newProjectName, setNewProjectName] = useState("");
   const [isCreatingTask, setIsCreatingTask] = useState(false);
@@ -85,6 +86,7 @@ function AppInner() {
   const notesLoadedRef = useRef(false);
   const notesSaveTimerRef = useRef<number | null>(null);
   const deadlineNotificationsRef = useRef<Set<string>>(new Set());
+  const taskOpenLockUntilRef = useRef(0);
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
     try {
@@ -217,6 +219,35 @@ function AppInner() {
     return workspace;
   }
 
+  function lockTaskOpen(ms = 450) {
+    taskOpenLockUntilRef.current = Date.now() + ms;
+  }
+
+  function handleBoardTaskSelect(taskId: string) {
+    if (Date.now() < taskOpenLockUntilRef.current) {
+      return;
+    }
+    setSelectedTaskId(taskId);
+  }
+
+  function handleBoardTaskDragStart(taskId: string) {
+    lockTaskOpen(900);
+    setSelectedTaskId("");
+    setDragTaskId(taskId);
+    setDragOverStatus("");
+  }
+
+  function handleBoardTaskDragEnterColumn(status: TaskStatus) {
+    if (!dragTaskId) return;
+    setDragOverStatus((current) => (current === status ? current : status));
+  }
+
+  function handleBoardTaskDragEnd() {
+    lockTaskOpen(600);
+    setDragTaskId("");
+    setDragOverStatus("");
+  }
+
   const {
     search,
     setSearch,
@@ -286,7 +317,6 @@ function AppInner() {
     loadAllData,
     setError,
     setSelectedTaskId,
-    setDragTaskId,
     setConfirmState,
   });
 
@@ -519,6 +549,7 @@ function AppInner() {
         selectedProjectSlug={selectedProjectSlug}
         selectedTaskId={selectedTaskId}
         dragTaskId={dragTaskId}
+        dragOverStatus={dragOverStatus}
         selectedTask={selectedTask}
         workspaceProgressLabel={workspaceVm.workspaceProgressLabel}
         workspaceProgressTooltip={workspaceVm.workspaceProgressTooltip}
@@ -581,13 +612,14 @@ function AppInner() {
         }}
         onSubmitNewTask={handleCreateTask}
         visibleTasks={visibleTasks}
-        onTaskSelect={(taskId) => setSelectedTaskId(taskId)}
-        onTaskDrop={(taskId, status) => void handleTaskDrop(taskId, status)}
-        onTaskDragStart={(taskId) => {
-          setSelectedTaskId("");
-          setDragTaskId(taskId);
+        onTaskSelect={handleBoardTaskSelect}
+        onTaskDrop={(taskId, status, orderedTaskIds) => {
+          lockTaskOpen(600);
+          void handleTaskDrop(taskId, status, orderedTaskIds);
         }}
-        onTaskDragEnd={() => setDragTaskId("")}
+        onTaskDragStart={handleBoardTaskDragStart}
+        onTaskDragEnterColumn={handleBoardTaskDragEnterColumn}
+        onTaskDragEnd={handleBoardTaskDragEnd}
         panelDraft={panelDraft}
         commentText={commentText}
         taskJustSaved={taskJustSaved}
