@@ -3,3 +3,5 @@ dist
 dist-client
 *.log
 .DS_Store
+index.html
+favicon.svg

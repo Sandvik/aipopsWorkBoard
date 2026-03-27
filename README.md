@@ -134,6 +134,11 @@ dist-client/
 
 Projektet bruger `vite-plugin-singlefile`, så builden genererer en samlet `index.html` med inline JS og CSS.
 
+Efter `npm run build` kopieres den færdige `index.html` og `favicon.svg` også op i projektroden.
+Det er lavet til simple servere, som altid forventer `index.html` i roden.
+
+I udvikling genskabes rodens `index.html` automatisk fra `index.dev.html`, så Vite stadig virker normalt.
+
 ## Krav og begrænsninger
 
 - Kræver en browser med File System Access API, typisk Chromium-baseret

@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "vite build",
-    "dev": "vite",
+    "build": "node scripts/prepare-root-html.mjs && vite build && node scripts/publish-root-build.mjs",
+    "dev": "node scripts/prepare-root-html.mjs && vite",
     "preview": "vite preview"
   },
   "dependencies": {
