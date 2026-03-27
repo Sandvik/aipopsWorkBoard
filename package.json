@@ -1,16 +1,23 @@
 {
-  "name": "simple-project-app",
+  "name": "workboard",
   "private": true,
   "version": "1.0.0",
-  "workspaces": [
-    "client"
-  ],
+  "type": "module",
   "scripts": {
-    "build": "npm run build -w client && node scripts/copy-built-index.js",
-    "dev": "npm run dev -w client",
-    "preview": "npm run preview -w client"
+    "build": "vite build",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.4.1",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.2",
     "vite-plugin-singlefile": "^2.3.0"
   }
 }

@@ -1,258 +1,124 @@
-## AIPOPS Workboard – README
+﻿# WorkBoard
 
-AIPOPS Workboard er et lille, lokalt projekt‑ og opgaveboard bygget med React + Vite.  
-Alle projekter og opgaver gemmes som filer i en mappe, du selv vælger på din maskine (via browserens File System Access API).
+WorkBoard er et local-first projekt- og opgaveboard bygget med React, TypeScript og Vite.
 
----
+Appen har ingen server og gemmer data som almindelige filer i en mappe, brugeren selv vælger via browserens File System Access API. Projekter, opgaver, noter, vedhæftninger og lokal konfiguration ligger derfor på brugerens egen maskine i stedet for i en database eller cloud-backend.
 
-### Funktioner – kort fortalt
+## Funktionalitet
 
-- **Arbejdsmappe**  
-  - Ved første load bliver du bedt om at vælge en mappe.  
-  - Alle data (projekter, opgaver, vedhæftninger, kommentarer) gemmes i en undermappe `project-data` i den valgte mappe.  
-  - Arbejdsmappen huskes mellem reloads i browseren (IndexedDB), så du normalt kun skal vælge den én gang.
+WorkBoard understøtter i dag:
 
-- **Projekter**
-  - Opret et nyt projekt via knappen **“+ Nyt projekt”** i venstre sidebar.  
-  - Projekter vises i et kort opdelt i **Aktive projekter** og **Arkiverede projekter**.  
-  - Det valgte projekt markeres som **“Aktivt projekt”**.
-  - Projekter kan slettes – dette fjerner også tilhørende opgaver.
+- Projekter med aktive og arkiverede visninger
+- Opgaver med titel, beskrivelse, ansvarlig, deadline, prioritet og status
+- Kanban-board med kolonnerne `Backlog`, `Ready`, `Doing` og `Done`
+- Drag and drop mellem stadier med gemt rækkefølge
+- Detaljepanel for opgaver med redigering, kommentarer og vedhæftninger
+- Filtrering på prioritet og ansvarlig samt fritekstsøgning
+- Workspace-valg og gendannelse af senest valgte mappe
+- Sticky-note-lignende noter gemt i workspace-mappen
+- Browser-notifikationer for deadlines
+- Valgfri AI-funktioner med brugerens egen OpenAI API-nøgle
+- AI-hjælp til beskrivelser, morning brief og opdeling af tekst i flere opgaver
+- Lys/mørk tema-toggle og onboarding-tour
 
-- **Opgaver**
-  - Opret opgaver via **“Ny opgave”** øverst i boardet.  
-  - Opgaver har:
-    - Titel, beskrivelse  
-    - Ansvarlig  
-    - Frist (dato)  
-    - Prioritet (Lav, Mellem, Høj, Kritisk)  
-    - Status: **Backlog, Klar, I gang, Færdig**  
-    - Tilhørende projekt  
-    - Kommentarer og vedhæftede filer.
-  - Boardet viser opgaver i fire kolonner (Backlog, Klar, I gang, Færdig).  
-  - Du kan **trække opgaver mellem kolonner** ved at trække i kortet (via drag‑ikon eller kort, afhængigt af seneste UI‑version).
+## Arkitektur
 
-- **Opgave‑detaljer**
-  - Klik på et kort for at åbne højre **Opgavedetaljer**‑panel.  
-  - Her kan du redigere alle felter, tilføje kommentarer og vedhæftninger.  
-  - **“Gem opgave”** (blå knap) gemmer ændringer og lukker panelet.  
-  - **“Slet opgave”** (rød knap) sletter opgaven helt (inkl. dens filer) efter bekræftelse.  
-  - Nederst i panelet sidder “Slet opgave”/“Gem opgave” altid fast (sticky), så de er synlige selv på små skærme.
+Kodebasen er organiseret som en lille frontend-monolit med tydelig opdeling mellem app-shell, features og infrastruktur.
 
-- **AI‑hjælp til beskrivelser (valgfrit)**
-  - Du kan tilføje din **egen OpenAI API‑nøgle** via dialogen **“AI‑indstillinger (valgfrit)”**, som:
-    - vises automatisk første gang du vælger en arbejdsmappe, eller  
-    - kan åbnes senere fra **“Om AIPOPS Workboard” → “AI‑indstillinger”**.
-  - Nøglen gemmes kun lokalt i arbejds­mappen i en lille fil `aipops.config.json` og bruges kun, når du selv trykker på en AI‑knap.
-  - Når der er angivet en nøgle, får du:
-    - I værktøjslinjen (“Ny opgave”): knappen **“✨ Hjælp til tekst”**, der kan:
-      - foreslå en ny opgavebeskrivelse ud fra titlen, eller  
-      - gøre en meget kort beskrivelse lidt mere fyldig og forklarende.
-    - I opgave‑detaljepanelet: knappen **“✨ Hjælp til beskrivelse”**, der kan:
-      - opbygge en beskrivelse ud fra titlen, hvis feltet er tomt, eller  
-      - forbedre/stampe en eksisterende tekst, så den bliver mere klar (eller lidt kortere, hvis den er meget lang).
-  - Hvis du trykker på en AI‑knap **uden** at have gemt en nøgle endnu, åbnes AI‑opsætningsdialogen, så du kan indtaste nøglen først.
+### Hovedprincipper
 
-- **Filtrering & søgning**
-  - Søg i opgaver via feltet **“Søg i opgaver”**.  
-  - Under **“Filtre”** kan du filtrere på prioritet og ansvarlig.  
-  - Når filtre er aktive, vises en lille grøn indikator samt teksten  
-    *“Filtre er aktive. Brug ‘Nulstil’ for at se alle opgaver igen.”*
+- `src/app/` samler den globale app-sammensætning, layout, styling og i18n
+- `src/features/` indeholder feature-logik for tasks, workspace og notes
+- `src/infrastructure/` håndterer filpersistens og AI-integration
+- `src/types.ts` samler de centrale TypeScript-domænetyper
+- Appen er local-first: UI'et arbejder mod filsystemet, ikke mod en server
 
----
+### Vigtige runtime-flow
 
-### Teknisk overblik
+1. Brugeren vælger en arbejdsmappe.
+2. Appen opretter eller læser sin egen datastruktur i den mappe.
+3. `storage.ts` læser og skriver projekter, tasks, attachments, noter og config som filer.
+4. `loadAllDataModel.ts` bygger den samlede view-model for det aktive workspace.
+5. `App.tsx` orkestrerer global state, mens feature-hooks håndterer task- og projektoperationer.
 
-- **Stack**
-  - React + TypeScript
-  - Vite (som bundler/dev‑server)
-  - Browserens **File System Access API** (kræver Chromium‑baseret browser, f.eks. Chrome / Edge / Vivaldi)
-
-- **Filstruktur (klient)**
-  - `client/src/App.tsx` – hoved‑UI og al interaktionslogik.  
-  - `client/src/storage.ts` – al filhåndtering: opret/slet projekter, opret/flyt/slet opgaver, vedhæftninger og kommentarer.  
-  - `client/src/types.ts` – TypeScript‑typer (`TaskRecord`, `ProjectRecord`, m.m.).  
-  - `client/src/styles.css` – global styling.  
-  - `client/vite.config.ts` – Vite‑konfiguration.
-
-- **Data‑layout i arbejdsmappe**
-  Når du har valgt en arbejdsmappe, oprettes følgende struktur:
-
-  ```text
-  <din-arbejdsmappe>/
-    aipops.config.json   # valgfri opsætning, bl.a. AI‑indstillinger
-    project-data/
-      projects/
-        <project-slug>/
-          project.json          # metadata om projektet
-          tasks/
-            <task-slug>.json   # én fil pr. opgave
-          attachments/
-            <task-id>/
-              <filnavne>       # vedhæftede filer
-  ```
-
----
-
-### Udvikling – sådan kører du app’en lokalt
-
-Forudsætninger:
-
-- Node.js (seneste LTS anbefales)
-- npm
-
-Fra projektroden `simple-project-app`:
-
-```bash
-cd client
-npm install
-npm run dev
-```
-
-Vite vil typisk starte på `http://localhost:5173/`.  
-Første gang du åbner app’en, vil den bede om at vælge en arbejdsmappe.
-
----
-
-### Build – generér en enkelt HTML‑fil
-
-Projektet er konfigureret med `vite-plugin-singlefile`, så du kan få **én** samlet `index.html` med alt JS/CSS inlinet.
-
-1. Installer plugin (hvis ikke allerede gjort):
-
-   ```bash
-   cd client
-   npm install -D vite-plugin-singlefile
-   ```
-
-2. Build:
-
-   ```bash
-   npm run build -w client
-   ```
-
-3. Output:
-
-   - Den samlede fil ligger her:
-
-     ```text
-     simple-project-app/dist-client/index.html
-     ```
-
-   - Denne `index.html` indeholder både HTML, JS og CSS og kan flyttes/bruges som én selvstændig fil (f.eks. på en intern webserver eller som en “lokal” app via browser).
-
-> Bemærk: For at File System Access API virker, skal filen serveres via en browser, der understøtter API’et, og typisk over `https` eller `http://localhost` (afhængigt af browser‑indstillinger).
-
----
-
-### Kørsel af almindelig multi‑fil build (alternativ)
-
-Hvis du **ikke** vil bruge single‑file‑pluginet, kan du stadig bygge normalt (Vite standard) ved at fjerne `viteSingleFile()` i `vite.config.ts`.  
-Så vil output være:
+## Aktuel mappestruktur
 
 ```text
-dist-client/
-  index.html
-  assets/
-    main-xxxxx.js
-    style-xxxxx.css
-    ...
-```
-
-I det tilfælde skal du flytte hele `dist-client`‑mappen, ikke kun `index.html`.
-
----
-
-### Kendte begrænsninger
-
-- Kræver en Chromium‑baseret browser pga. File System Access API.  
-- Data er **lokale** til den arbejdsmappe, du vælger – ingen server/sky‑synkronisering.  
-- Hvis du skifter arbejdsmappe, ser du ikke de gamle projekter (de ligger stadig i den gamle mappe).
-
----
-
-### Sikkerhed og hosting (GitHub Pages)
-
-App’en er en ren frontend som kan hostes statisk, f.eks. på GitHub Pages (som i `https://sandvik.github.io/aipopsWorkBoard/`).
-
-**GitHub Pages**
-
-- Koden hostes som statiske filer (HTML/JS/CSS) over **HTTPS**.
-- Der kører ingen serverkode på dine vegne – al logik sker i browseren.
-- Så længe du kontrollerer dit GitHub‑repo og ikke lader uvedkommende committe, er dette en normal og sikker måde at udstille en frontend på.
-
-**File System Access API – hvad det betyder**
-
-- App’en bruger browserens **File System Access API** til at læse/skrive filer i en mappe, brugeren selv vælger.
-- Browseren spørger altid brugeren:
-  - “Allow this site to edit files” / tilsvarende prompt.
-  - Du kan **ikke** slå den fra i koden – det er en vigtig sikkerhedsmekanisme.
-- App’en får kun adgang til:
-  - den konkrete mappe/fil, brugeren vælger,
-  - og kun indenfor de tilladelser, brugeren giver.
-- Der er **ingen adgang** til resten af filsystemet uden nye, eksplicitte valg/prompts.
-
-**Data og ansvar**
-
-- Alle projekter og opgaver ligger **lokalt** i den arbejdsmappe, brugeren vælger:
-  - der er ingen central server eller sky‑backup,
-  - sikkerhed, adgang og backup af data ligger derfor hos brugeren (eller organisationen, der bruger værktøjet).
-- Hvis en bruger skifter arbejdsmappe, ligger de gamle data urørte i deres oprindelige mappe; app’en viser blot indholdet af den nye.
-
-**Risiko‑overvejelser**
-
-- En ondsindet side kan i princippet også bruge File System Access API, hvis en bruger besøger den og **aktivt** vælger en mappe – dette er en generel web‑sikkerhedsrisiko, ikke specifikt denne app.
-- For AIPOPS Workboard betyder det:
-  - Host kun koden fra et repo du selv kontrollerer.
-  - Sørg for, at brugere kun bruger den officielle URL (f.eks. GitHub Pages‑linket eller din egen domæne‑alias).
-
-Samlet set er AIPOPS Workboard designet til at være:
-
-- simpel at køre (kun en statisk host er nødvendig),
-- gennemsigtig omkring data (alt ligger i en valgt mappe),
-- og afhængig af browserens indbyggede sikkerhedsprompts for filadgang.
-
----
-
-### Support / videreudvikling
-
-- UI/UX er optimeret til at være meget simpelt for ikke‑tekniske brugere.  
-- Forslag til forbedringer:
-  - flere tastatur‑genveje,  
-  - flere filtermuligheder (tags, tekst‑labels),  
-  - mulighed for at eksportere/importere data mellem arbejdsmapper.
-
-# Simple Project App
-
-Statisk projektboard bygget med React og browserens File System Access API.
-
-## Hvad det er nu
-
-- Ingen server
-- Ingen Electron eller `.exe`
-- Ingen Node/npm paa maalcomputeren efter build
-- Data gemmes i en lokal mappe, som brugeren vaelger i browseren
-
-Appen opretter denne struktur i den valgte mappe:
-
-```text
-simple-project-data/
-  projects/
-    <project-slug>/
-      project.json
+WorkBoard/
+  public/
+  src/
+    app/
+      App.tsx
+      main.tsx
+      styles.css
+      i18n/
+      layout/
+    assets/
+    features/
+      notes/
       tasks/
-        <task-slug>.json
-      attachments/
-        <task-id>/
+      workspace/
+    infrastructure/
+      aiClient.ts
+      storage.ts
+    types.ts
+  tests/
+  dist-client/
+  index.html
+  package.json
+  tsconfig.json
+  vite.config.ts
+  README.md
 ```
+
+### Hvad de vigtigste mapper gør
+
+- `src/app/`: app entrypoint, globale modaler, shell-komponenter, tema og tekster
+- `src/features/tasks/`: task-board, task-detaljer, filtre, toolbar og task-actions
+- `src/features/workspace/`: workspace-valg, projekthåndtering og afledte view-models
+- `src/features/notes/`: notes-modal og note-redigering
+- `src/infrastructure/storage.ts`: filbaseret persistence via File System Access API
+- `src/infrastructure/aiClient.ts`: klient til AI-funktioner, når API-nøgle er sat op
+- `tests/`: testfiler for udvalgte dele af logikken
+- `dist-client/`: produktionsbuild genereret af Vite
+
+## Data-layout i brugerens workspace
+
+Når brugeren vælger en arbejdsmappe, opretter WorkBoard sin egen undermappestruktur der.
+
+```text
+<valgt-mappe>/
+  aipops.config.json
+  aipops.notes.json
+  project-data/
+    projects/
+      <project-slug>/
+        project.json
+        tasks/
+          <task-slug>.json
+        attachments/
+          <task-id>/
+            <filer>
+```
+
+### Hvad filerne bruges til
+
+- `aipops.config.json`: lokal konfiguration som AI-indstillinger og notifikationsvalg
+- `aipops.notes.json`: frie noter for workspace'et
+- `project-data/projects/<project>/project.json`: projektmetadata
+- `project-data/projects/<project>/tasks/*.json`: én fil pr. opgave
+- `project-data/projects/<project>/attachments/`: vedhæftede filer pr. opgave
 
 ## Udvikling
 
+Kør fra projektroden:
+
 ```bash
 npm install
 npm run dev
 ```
 
-`npm run dev` starter Vite med hot reload. Aendringer i filer som `client/src/App.tsx` og `client/src/styles.css` vises straks i browseren.
+Det starter Vite dev server med hot reload.
 
 ## Build
 
@@ -260,28 +126,41 @@ npm run dev
 npm run build
 ```
 
-Det bygger den statiske frontend til:
+Bygget output lander i:
 
 ```text
 dist-client/
 ```
 
-Den byggede version har ikke hot reload. Hvis du aendrer koden, skal du koere `npm run build` igen og genindlaese `dist-client/index.html`.
+Projektet bruger `vite-plugin-singlefile`, så builden genererer en samlet `index.html` med inline JS og CSS.
 
-## Brug paa en anden computer
+## Krav og begrænsninger
 
-Kopier hele mappen `dist-client` til den anden computer og aabn:
+- Kræver en browser med File System Access API, typisk Chromium-baseret
+- Data synkroniseres ikke automatisk mellem computere
+- Der er ingen backend eller central brugerhåndtering
+- AI-funktioner virker kun, hvis brugeren selv tilføjer en OpenAI API-nøgle
+- Browser-notifikationer afhænger af brugerens tilladelser
 
-```text
-dist-client/index.html
-```
+## Teknisk stack
 
-Brug en Chromium-baseret browser som Chrome eller Edge, fordi appen bruger File System Access API til at laese og skrive lokale filer.
+- React 19
+- TypeScript
+- Vite
+- vite-plugin-singlefile
+- Browser File System Access API
 
-## Arbejdsgang i appen
+## Status på repoet
 
-1. Aabn `index.html`
-2. Klik `Vaelg arbejdsmappe`
-3. Vaelg en lokal mappe
-4. Opret projekter og opgaver
-5. Appen gemmer JSON-filer og vedhaeftninger direkte i den valgte mappe
+Repoet er nu gjort enklere end tidligere:
+
+- appen ligger direkte i projektroden og ikke længere i en `client/`-mappe
+- gamle eksempeldata under `data/` er fjernet
+- projektnavnet er konsolideret til `WorkBoard`
+
+## Fremtidige oplagte forbedringer
+
+- Flere tests omkring storage, workspace-flow og drag-and-drop
+- Mere præcis reorder mellem kort i samme kolonne
+- Yderligere opdeling af `tasks`-feature i mindre komponent- og hook-områder
+- Hærdning af AI-klienten med bedre validering og fejlscenarier
