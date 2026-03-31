@@ -1,6 +1,11 @@
 ﻿import { useMemo } from "react";
 import type { ProjectRecord, TaskRecord } from "../../types";
-import { createProject, updateProject, deleteProject } from "../../infrastructure/storage";
+import {
+  createProject,
+  updateProject,
+  deleteProject,
+  reorderProjects,
+} from "../../infrastructure/storage";
 import { useStrings } from "../../app/i18n";
 
 type ConfirmState = {
@@ -116,11 +121,28 @@ export function useProjectActions({
     });
   }
 
+  async function handleProjectReorder(nextProjects: ProjectRecord[]) {
+    const normalizedProjects = nextProjects.map((project, index) => ({
+      ...project,
+      order: index,
+    }));
+    setProjects(normalizedProjects);
+    await runAction(async () => {
+      const handle = await requireWorkspace();
+      await reorderProjects(
+        handle,
+        normalizedProjects.map((project) => project.slug),
+      );
+      await loadAllData(handle, selectedProjectSlug || normalizedProjects[0]?.slug || undefined, selectedTaskId);
+    });
+  }
+
   return {
     activeProjects,
     archivedProjects,
     handleCreateProject,
     handleProjectUpdate,
     handleProjectDelete,
+    handleProjectReorder,
   };
 }

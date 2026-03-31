@@ -1,4 +1,5 @@
 import type { ProjectRecord } from "../../types";
+import { useState } from "react";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import sidebarImage from "../../assets/aipops-workboard-sidebar-transparent.png";
@@ -24,6 +25,7 @@ type WorkspaceSidebarProps = {
   onCreateProject: () => void;
   onSelectProject: (slug: string) => void;
   onDeleteProject: (project: ProjectRecord) => void;
+  onReorderProjects: (nextProjects: ProjectRecord[]) => void;
 };
 
 export function WorkspaceSidebar({
@@ -45,10 +47,94 @@ export function WorkspaceSidebar({
   onCreateProject,
   onSelectProject,
   onDeleteProject,
+  onReorderProjects,
 }: WorkspaceSidebarProps) {
   const { sidebar: t } = useStrings();
   const { locale } = useLocale();
   const local = getTextCatalog(locale).workspaceGhost;
+  const [draggingProjectSlug, setDraggingProjectSlug] = useState("");
+
+  function reorderSection(
+    sourceSlug: string,
+    targetSlug: string,
+    sectionProjects: ProjectRecord[],
+  ) {
+    if (!sourceSlug || sourceSlug === targetSlug) return;
+    const sourceIndex = sectionProjects.findIndex((project) => project.slug === sourceSlug);
+    const targetIndex = sectionProjects.findIndex((project) => project.slug === targetSlug);
+    if (sourceIndex < 0 || targetIndex < 0) return;
+
+    const reorderedSection = [...sectionProjects];
+    const [movedProject] = reorderedSection.splice(sourceIndex, 1);
+    reorderedSection.splice(targetIndex, 0, movedProject);
+
+    const sectionSlugs = new Set(sectionProjects.map((project) => project.slug));
+    const nextProjects: ProjectRecord[] = [];
+    let reorderedIndex = 0;
+    for (const project of projects) {
+      if (sectionSlugs.has(project.slug)) {
+        nextProjects.push(reorderedSection[reorderedIndex]);
+        reorderedIndex += 1;
+      } else {
+        nextProjects.push(project);
+      }
+    }
+    onReorderProjects(nextProjects);
+  }
+
+  function renderProjectItem(project: ProjectRecord, sectionProjects: ProjectRecord[], archived = false) {
+    return (
+      <button
+        key={project.id}
+        type="button"
+        draggable
+        className={`project-list-item ${
+          archived ? "project-list-item-archived-section" : "project-list-item-active-section"
+        } ${selectedProjectSlug === project.slug ? "project-list-item-active" : ""} ${
+          draggingProjectSlug === project.slug ? "project-list-item-dragging" : ""
+        }`}
+        title={projectTooltips[project.slug] || undefined}
+        onClick={() => onSelectProject(project.slug)}
+        onDragStart={(event) => {
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", project.slug);
+          setDraggingProjectSlug(project.slug);
+        }}
+        onDragEnd={() => setDraggingProjectSlug("")}
+        onDragOver={(event) => {
+          if (!draggingProjectSlug || draggingProjectSlug === project.slug) return;
+          event.preventDefault();
+        }}
+        onDrop={(event) => {
+          event.preventDefault();
+          reorderSection(draggingProjectSlug, project.slug, sectionProjects);
+          setDraggingProjectSlug("");
+        }}
+      >
+        <span className="project-drag-handle" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
+        <span
+          className={`project-list-strip ${
+            archived ? "project-list-strip-archived" : "project-list-strip-active"
+          }`}
+          aria-hidden="true"
+        />
+        <span className="project-list-text">
+          <span className="project-list-name">
+            {project.name}
+            {typeof projectTaskCounts[project.slug] === "number" ? (
+              <span className="project-task-count-badge">
+                {projectTaskCounts[project.slug]}
+              </span>
+            ) : null}
+          </span>
+        </span>
+      </button>
+    );
+  }
 
   return (
     <aside className="left-rail">
@@ -129,57 +215,13 @@ export function WorkspaceSidebar({
 
             <div className="project-list">
               <p className="project-section-label">{local.activeProjects}</p>
-              {activeProjects.map((project) => (
-                <button
-                  key={project.id}
-                  type="button"
-                  className={`project-list-item project-list-item-active-section ${
-                    selectedProjectSlug === project.slug ? "project-list-item-active" : ""
-                  }`}
-                  title={projectTooltips[project.slug] || undefined}
-                  onClick={() => onSelectProject(project.slug)}
-                >
-                  <span className="project-list-strip project-list-strip-active" aria-hidden="true" />
-                  <span className="project-list-text">
-                    <span className="project-list-name">
-                      {project.name}
-                      {typeof projectTaskCounts[project.slug] === "number" ? (
-                        <span className="project-task-count-badge">
-                          {projectTaskCounts[project.slug]}
-                        </span>
-                      ) : null}
-                    </span>
-                  </span>
-                </button>
-              ))}
+              {activeProjects.map((project) => renderProjectItem(project, activeProjects))}
               {!activeProjects.length ? <p className="muted small">{t.noProjects}</p> : null}
 
               {archivedProjects.length ? (
                 <>
                   <p className="project-section-label">{local.archivedProjects}</p>
-                  {archivedProjects.map((project) => (
-                    <button
-                      key={project.id}
-                      type="button"
-                      className={`project-list-item project-list-item-archived-section ${
-                        selectedProjectSlug === project.slug ? "project-list-item-active" : ""
-                      }`}
-                      title={projectTooltips[project.slug] || undefined}
-                      onClick={() => onSelectProject(project.slug)}
-                    >
-                      <span className="project-list-strip project-list-strip-archived" aria-hidden="true" />
-                      <span className="project-list-text">
-                        <span className="project-list-name">
-                          {project.name}
-                          {typeof projectTaskCounts[project.slug] === "number" ? (
-                            <span className="project-task-count-badge">
-                              {projectTaskCounts[project.slug]}
-                            </span>
-                          ) : null}
-                        </span>
-                      </span>
-                    </button>
-                  ))}
+                  {archivedProjects.map((project) => renderProjectItem(project, archivedProjects, true))}
                 </>
               ) : null}
               {projects.length > 0 && selectedProjectSlug && (

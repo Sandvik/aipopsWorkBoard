@@ -103,6 +103,7 @@ type WorkspaceShellProps = {
   onCreateProject: () => void;
   onSelectProject: (slug: string) => void;
   onDeleteProject: (project: ProjectRecord) => void;
+  onReorderProjects: (nextProjects: ProjectRecord[]) => void;
 };
 
 export function WorkspaceShell({
@@ -192,6 +193,7 @@ export function WorkspaceShell({
   onCreateProject,
   onSelectProject,
   onDeleteProject,
+  onReorderProjects,
 }: WorkspaceShellProps) {
   const { onboarding: onboardingStrings } = useStrings();
   return (
@@ -225,6 +227,7 @@ export function WorkspaceShell({
           onCreateProject={onCreateProject}
           onSelectProject={onSelectProject}
           onDeleteProject={onDeleteProject}
+          onReorderProjects={onReorderProjects}
         />
 
         <ErrorBoundary>

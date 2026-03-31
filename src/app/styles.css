@@ -2144,7 +2144,7 @@ label {
 
 .project-list-item {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto auto minmax(0, 1fr);
   gap: 0.55rem;
   align-items: center;
   width: 100%;
@@ -2152,7 +2152,12 @@ label {
   border-radius: 0.9rem;
   background: transparent;
   border: 1px solid transparent;
-  cursor: pointer;
+  cursor: grab;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .project-list-item-skeleton {
@@ -2171,6 +2176,41 @@ label {
 .project-list-item-active {
   background: rgba(37, 99, 235, 0.08);
   border-color: rgba(37, 99, 235, 0.45);
+}
+
+.project-list-item:hover {
+  background: rgba(15, 23, 42, 0.04);
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.project-list-item-dragging {
+  opacity: 0.55;
+  cursor: grabbing;
+  transform: scale(0.985);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+.project-drag-handle {
+  display: grid;
+  gap: 0.18rem;
+  align-items: center;
+  justify-items: center;
+  width: 0.65rem;
+  opacity: 0.65;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.project-drag-handle span {
+  width: 0.22rem;
+  height: 0.22rem;
+  border-radius: 999px;
+  background: #94a3b8;
+}
+
+.project-list-item:hover .project-drag-handle,
+.project-list-item-dragging .project-drag-handle {
+  opacity: 1;
+  transform: scale(1.05);
 }
 
 .project-list-strip {
@@ -2218,6 +2258,15 @@ label {
 body.theme-dark .project-task-count-badge {
   background: #ef4444;
   color: #fef2f2;
+}
+
+body.theme-dark .project-list-item:hover {
+  background: rgba(148, 163, 184, 0.08);
+  border-color: rgba(148, 163, 184, 0.38);
+}
+
+body.theme-dark .project-drag-handle span {
+  background: #cbd5e1;
 }
 
 .project-list-meta {

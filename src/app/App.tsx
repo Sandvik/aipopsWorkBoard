@@ -316,6 +316,7 @@ function AppInner() {
     handleCreateProject,
     handleProjectUpdate,
     handleProjectDelete,
+    handleProjectReorder,
   } = useProjectActions({
     projects,
     tasksByProject,
@@ -632,6 +633,7 @@ function AppInner() {
         onCreateProject={() => setShowNewProjectModal(true)}
         onSelectProject={(slug) => setSelectedProjectSlug(slug)}
         onDeleteProject={(project) => void handleProjectDelete(project)}
+        onReorderProjects={(nextProjects) => void handleProjectReorder(nextProjects)}
       />
 
         {showTour ? (

@@ -47,5 +47,6 @@ export interface ProjectRecord {
   slug: string;
   color: string;
   archived: boolean;
+  order: number;
   createdAt: string;
 }

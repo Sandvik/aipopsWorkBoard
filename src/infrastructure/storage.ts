@@ -67,6 +67,17 @@ function ensureTaskDefaults(task: TaskRecord): TaskRecord {
   };
 }
 
+function hasValidProjectOrder(project: Partial<ProjectRecord>) {
+  return typeof project.order === "number" && Number.isFinite(project.order);
+}
+
+function ensureProjectDefaults(project: ProjectRecord, fallbackOrder: number): ProjectRecord {
+  return {
+    ...project,
+    order: hasValidProjectOrder(project) ? project.order : fallbackOrder,
+  };
+}
+
 // at skulle ramme filsystemet.
 export function normalizeTaskFromDisk(task: TaskRecord): TaskRecord {
   return ensureTaskDefaults(task);
@@ -267,7 +278,10 @@ async function loadProjects(workspace: WorkspaceHandle) {
     }
   }
 
-  return projects.sort((a, b) => a.name.localeCompare(b.name));
+  const alphabeticProjects = [...projects].sort((a, b) => a.name.localeCompare(b.name));
+  return alphabeticProjects
+    .map((project, index) => ensureProjectDefaults(project, index))
+    .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
 }
 
 async function loadTasks(workspace: WorkspaceHandle, projectSlug: string) {
@@ -331,12 +345,18 @@ export async function createProject(workspace: WorkspaceHandle, input: { name: s
   }
 
   const slug = await ensureUniqueProjectSlug(workspace, slugify(name));
+  const nextOrder =
+    projects.reduce((maxOrder, project, index) => {
+      const currentOrder = hasValidProjectOrder(project) ? project.order : index;
+      return Math.max(maxOrder, currentOrder);
+    }, -1) + 1;
   const project: ProjectRecord = {
     id: `project_${crypto.randomUUID().slice(0, 8)}`,
     name,
     slug,
     color: input.color?.trim() || "#bf5b39",
     archived: false,
+    order: nextOrder,
     createdAt: new Date().toISOString(),
   };
 
@@ -350,12 +370,14 @@ export async function createProject(workspace: WorkspaceHandle, input: { name: s
 export async function updateProject(
   workspace: WorkspaceHandle,
   currentSlug: string,
-  input: Partial<Pick<ProjectRecord, "name" | "color" | "archived">>,
+  input: Partial<Pick<ProjectRecord, "name" | "color" | "archived" | "order">>,
 ) {
   const projectDir = await getProjectDir(workspace, currentSlug);
-  const project = await readJsonFile<ProjectRecord>(projectDir, "project.json");
-  const nextName = input.name?.trim() || project.name;
+  const loadedProject = await readJsonFile<ProjectRecord>(projectDir, "project.json");
   const projects = await loadProjects(workspace);
+  const fallbackOrder = projects.find((entry) => entry.slug === currentSlug)?.order ?? 0;
+  const project = ensureProjectDefaults(loadedProject, fallbackOrder);
+  const nextName = input.name?.trim() || project.name;
 
   if (
     projects.some(
@@ -376,6 +398,7 @@ export async function updateProject(
     slug: nextSlug,
     color: input.color?.trim() || project.color,
     archived: input.archived ?? project.archived,
+    order: hasValidProjectOrder(input) ? input.order : project.order,
   };
 
   if (nextSlug !== currentSlug) {
@@ -392,6 +415,24 @@ export async function updateProject(
   const nextProjectDir = await getProjectDir(workspace, nextSlug);
   await writeJsonFile(nextProjectDir, "project.json", updatedProject);
   return updatedProject;
+}
+
+export async function reorderProjects(workspace: WorkspaceHandle, orderedSlugs: string[]) {
+  const projects = await loadProjects(workspace);
+  const orderBySlug = new Map(orderedSlugs.map((slug, index) => [slug, index]));
+  await Promise.all(
+    projects.map(async (project, index) => {
+      const nextOrder = orderBySlug.get(project.slug);
+      if (nextOrder === undefined || nextOrder === project.order) {
+        return;
+      }
+      const projectDir = await getProjectDir(workspace, project.slug);
+      await writeJsonFile(projectDir, "project.json", {
+        ...project,
+        order: nextOrder,
+      });
+    }),
+  );
 }
 
 export async function deleteProject(workspace: WorkspaceHandle, projectSlug: string) {
